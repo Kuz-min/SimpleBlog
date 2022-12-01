@@ -1,0 +1,43 @@
+<nav class="navbar navbar-expand-md bg-light border-bottom mb-3">
+  <div class="container">
+
+    <div class="d-flex">
+
+      <button class="navbar-toggler" type="button" (click)="toggleMainMenu()">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand" [routerLink]="['/']">SimpleBlog</a>
+
+    </div>
+
+    <div class="navbar-collapse collapse d-md-inline-flex justify-content-end" [ngClass]="{ show: (mainMenu | async)?.isExpanded }">
+      <div class="navbar-nav-background bg-light"></div>
+      <ul class="navbar-nav bg-light">
+
+        <li class="nav-item" (click)="collapseMainMenu()">
+          <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
+        </li>
+
+        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
+          <a class="nav-link text-dark" [routerLink]="['/posts/create']">New Post</a>
+        </li>
+
+        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
+          <a class="nav-link text-dark" [routerLink]="['/post-tags/edit']">Edit tags</a>
+        </li>
+
+        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
+          <a class="nav-link text-dark" [routerLink]="['/sign-in']">Sign In</a>
+        </li>
+
+        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
+          <a class="nav-link text-dark" [routerLink]="['/sign-up']">Sign Up</a>
+        </li>
+
+      </ul>
+    </div>
+
+  </div>
+</nav>
+<!-- [routerLinkActive]="['active']" [routerLinkActiveOptions]="{ exact: true }" -->

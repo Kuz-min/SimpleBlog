@@ -1,0 +1,27 @@
+<div class="row">
+  <div class="col">
+
+
+    <div class="input-group border rounded-2 my-2" *ngFor="let tag of (tags | async)">
+
+      <input #title class="form-control m-2" type="text" [value]="tag.title" />
+
+      <div class="input-group-append">
+        <button class="btn btn-primary m-2" (click)="updateTag(tag, title.value)">Save</button>
+        <button class="btn btn-primary m-2" (click)="deleteTag(tag)">Delete</button>
+      </div>
+    </div>
+
+
+    <div class="input-group border rounded-2 my-2">
+
+      <input #title class="form-control m-2" type="text" />
+
+      <div class="input-group-append">
+        <button class="btn btn-primary m-2" (click)="createTag(title)">Add</button>
+      </div>
+    </div>
+
+
+  </div>
+</div>

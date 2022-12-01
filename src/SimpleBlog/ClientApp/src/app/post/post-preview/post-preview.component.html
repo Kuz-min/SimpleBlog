@@ -1,0 +1,34 @@
+<div class="d-flex flex-column border rounded-2">
+
+  <div class="text-break border-bottom p-2">
+    <h4>{{post?.title}}</h4>
+  </div>
+
+  <div class="text-break border-bottom p-2">
+    <p>{{post?.content}}</p>
+  </div>
+
+  <ng-container *ngIf="post?.tagIds?.length! > 0">
+    <div class="text-break border-bottom p-2">
+      Tags:
+      <ng-container *ngFor="let tagId of post?.tagIds">
+        <post-tag-preview [tagId]="tagId"></post-tag-preview>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <div class="d-flex justify-content-between align-items-center p-2">
+    <div>
+      {{post?.createdOn | date:'H:mm d MMMM Y' }}
+    </div>
+
+    <a [routerLink]="['/profiles', post?.ownerId]">
+      <profile-preview [profileId]="post?.ownerId"></profile-preview>
+    </a>
+
+    <div>
+      <button class="btn btn-primary" [routerLink]="['/posts', post?.id]">Read More</button>
+    </div>
+  </div>
+
+</div>
