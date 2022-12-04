@@ -1,11 +1,10 @@
 ﻿using OpenIddict.Abstractions;
+using SimpleBlog.Configuration;
 
 namespace SimpleBlog.StartupTasks;
 
 public class AuthenticationStartupTask
 {
-    private const string CLIENT_ID = "simple-blog-web-client";
-
     public AuthenticationStartupTask(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -15,28 +14,45 @@ public class AuthenticationStartupTask
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var appManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        var app = await appManager.FindByClientIdAsync(CLIENT_ID);
+        var clientAppConfigs = new List<ClientApplicationConfiguration>();
 
-        if (app != null)
-            return;
-
-        await appManager.CreateAsync(new OpenIddictApplicationDescriptor
+        foreach (var rawClientAppConfig in configuration.GetSection(ClientApplicationConfiguration.SectionName).GetChildren())
         {
-            ClientId = CLIENT_ID,
-            ClientSecret = CLIENT_ID,//useless for web client
-            DisplayName = CLIENT_ID,
-            Permissions =
+            var clientAppConfig = new ClientApplicationConfiguration();
+            rawClientAppConfig.Bind(clientAppConfig, options => options.BindNonPublicProperties = true);
+            clientAppConfigs.Add(clientAppConfig);
+        }
+
+        if (!clientAppConfigs.All(config => config.IsValid()))
+            throw new InvalidOperationException("Client Application Configuration is not valid");
+
+        var clientAppManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+
+        foreach (var clientAppConfig in clientAppConfigs)
+        {
+            var clientApp = await clientAppManager.FindByClientIdAsync(clientAppConfig.Id);
+
+            if (clientApp is null)
             {
-                OpenIddictConstants.Permissions.Endpoints.Token,
+                var clientAppDescriptor = new OpenIddictApplicationDescriptor()
+                {
+                    ClientId = clientAppConfig.Id,
+                    ClientSecret = clientAppConfig.Secret,
+                    DisplayName = clientAppConfig.Name,
+                };
+                foreach (var permission in clientAppConfig.Permissions.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                    clientAppDescriptor.Permissions.Add(permission);
 
-                OpenIddictConstants.Permissions.GrantTypes.Password,
-                OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
-
-                OpenIddictConstants.Permissions.ResponseTypes.Token,
+                await clientAppManager.CreateAsync(clientAppDescriptor);
             }
-        });
+        };
+
+        //OpenIddictConstants.Permissions.Endpoints.Token,
+        //OpenIddictConstants.Permissions.GrantTypes.Password,
+        //OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+        //OpenIddictConstants.Permissions.ResponseTypes.Token,
     }
 
     private readonly IServiceProvider _serviceProvider;
