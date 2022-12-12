@@ -29,6 +29,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -48,6 +49,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -68,6 +70,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 

@@ -27,6 +27,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -46,6 +47,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -76,6 +78,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -99,6 +102,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -114,6 +118,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -137,6 +142,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -150,6 +156,7 @@ public class PostTagController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 

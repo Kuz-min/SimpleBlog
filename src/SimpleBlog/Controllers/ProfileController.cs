@@ -25,6 +25,7 @@ public class ProfileController : BaseController
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
