@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Validation.AspNetCore;
+using SimpleBlog.Authorization;
 using SimpleBlog.Database;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
@@ -74,7 +75,11 @@ public class Program
                 .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
                 .RequireAuthenticatedUser()
                 .Build();
+
+            options.AddPolicy(Policies.SameOwner, policy => policy.Requirements.Add(new SameOwnerRequirement()));
         });
+
+        builder.Services.AddSingleton<IAuthorizationHandler, PostSameOwnerAuthorizationHandler>();
 
         //MyServices
         builder.Services.AddScoped<IProfileService, ProfileService>();

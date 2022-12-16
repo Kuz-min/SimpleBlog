@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SimpleBlog.Authorization;
 using SimpleBlog.ModelBinders;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
@@ -12,9 +13,10 @@ namespace SimpleBlog.Controllers;
 [Route("api/posts")]
 public class PostController : BaseController
 {
-    public PostController(ILogger<PostController> logger, IPostService posts)
+    public PostController(ILogger<PostController> logger, IAuthorizationService authorizationService, IPostService posts)
     {
         _logger = logger;
+        _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         _posts = posts;
     }
 
@@ -151,6 +153,12 @@ public class PostController : BaseController
         if (post == null)
             return StatusCode(StatusCodes.Status400BadRequest);
 
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, (post, profile), Policies.SameOwner);
+        if (authorizationResult == null || !authorizationResult.Succeeded)
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+
         post.Title = request.Title;
         post.Content = request.Content;
 
@@ -207,6 +215,12 @@ public class PostController : BaseController
         if (post == null)
             return StatusCode(StatusCodes.Status400BadRequest);
 
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, (post, profile), Policies.SameOwner);
+        if (authorizationResult == null || !authorizationResult.Succeeded)
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+
         try
         {
             await _posts.DeleteAsync(post);
@@ -223,5 +237,6 @@ public class PostController : BaseController
     }
 
     private readonly ILogger<PostController> _logger;
+    private readonly IAuthorizationService _authorizationService;
     private readonly IPostService _posts;
 }
