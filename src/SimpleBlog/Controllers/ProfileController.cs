@@ -9,19 +9,19 @@ namespace SimpleBlog.Controllers;
 [Route("api/profiles")]
 public class ProfileController : BaseController
 {
-    public ProfileController(ILogger<ProfileController> logger, IProfileService profiles)
+    public ProfileController(ILogger<ProfileController> logger, IProfileService profileService)
     {
-        _logger = logger;
-        _profiles = profiles;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
     }
 
-    [HttpGet("{profileId:int}")]
-    public async Task<IActionResult> GetByIdAsync([FromRoute] int profileId)
+    [HttpGet("{profileId:guid}")]
+    public async Task<IActionResult> GetByIdAsync([FromRoute] Guid profileId)
     {
         Profile? profile;
         try
         {
-            profile = await _profiles.GetByIdAsync(profileId);
+            profile = await _profileService.GetByIdAsync(profileId);
         }
         catch (Exception e)
         {
@@ -36,5 +36,5 @@ public class ProfileController : BaseController
     }
 
     private readonly ILogger<ProfileController> _logger;
-    private readonly IProfileService _profiles;
+    private readonly IProfileService _profileService;
 }

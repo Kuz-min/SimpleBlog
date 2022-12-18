@@ -7,29 +7,31 @@ namespace SimpleBlog.Controllers;
 
 public class BaseController : ControllerBase
 {
-    private IProfileService? Profiles
+    private IProfileService? ProfileService
     {
         get
         {
-            if (_profiles == null)
-                _profiles = HttpContext?.RequestServices?.GetRequiredService<IProfileService>();
+            if (_profileService == null)
+                _profileService = HttpContext?.RequestServices?.GetRequiredService<IProfileService>();
 
-            return _profiles;
+            return _profileService;
         }
     }
 
     protected async Task<Profile?> GetProfileAsync()
     {
-        var accountId = User?.Claims?.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
+        var rawAccountId = User?.Claims?.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
 
-        if (string.IsNullOrWhiteSpace(accountId))
+        if (string.IsNullOrWhiteSpace(rawAccountId))
             return null;
 
-        if (Profiles == null)
+        if (ProfileService == null)
             return null;
 
-        return await Profiles.GetByAccountIdAsync(accountId);
+        var accountId = Guid.Parse(rawAccountId);
+
+        return await ProfileService.GetByIdAsync(accountId);
     }
 
-    private IProfileService? _profiles;
+    private IProfileService? _profileService;
 }

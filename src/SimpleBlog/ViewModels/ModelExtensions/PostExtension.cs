@@ -11,7 +11,7 @@ public static class PostExtension
         content = post.Content,
         createdOn = post.CreatedOn,
 
-        ownerId = post.OwnerId,
+        ownerId = post.OwnerId.ToString(),
 
         tagIds = post.Tags?.Select(tag => tag.PostTagId).ToArray(),
     };

@@ -20,9 +20,9 @@ public class AuthenticationController : ControllerBase
         SignInManager<Account> signInManager
         )
     {
-        _logger = logger;
-        _accountManager = accountManager;
-        _signInManager = signInManager;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
+        _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     }
 
     [AllowAnonymous]
@@ -100,8 +100,8 @@ public class AuthenticationController : ControllerBase
     {
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
-        identity.AddClaim(ClaimTypes.NameIdentifier, account.Id);
-        identity.AddClaim(OpenIddictConstants.Claims.Subject, account.Id);
+        identity.AddClaim(ClaimTypes.NameIdentifier, account.Id.ToString());
+        identity.AddClaim(OpenIddictConstants.Claims.Subject, account.Id.ToString());
 
         identity.AddClaim(ClaimTypes.Name, account.UserName);
         identity.AddClaim(OpenIddictConstants.Claims.Name, account.UserName);

@@ -7,7 +7,7 @@ public class Post
     public string Content { get; set; }
     public DateTime CreatedOn { get; set; }
 
-    public int OwnerId { get; set; }
+    public Guid OwnerId { get; set; }
     public Profile Owner { get; set; }
 
     public ICollection<Post_PostTag> Tags { get; set; }

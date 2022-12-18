@@ -5,7 +5,7 @@ using SimpleBlog.Models;
 
 namespace SimpleBlog.Database;
 
-public class BlogDatabase : IdentityDbContext<Account, AccountRole, string>, IBlogDatabase
+public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid>, IBlogDatabase
 {
     public DbSet<Post> Posts { get; set; }
     public DbSet<Profile> Profiles { get; set; }

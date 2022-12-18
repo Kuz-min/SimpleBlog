@@ -21,7 +21,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.profile = this._route.params.pipe(
       filter(params => params['id']),
-      map(params => Number(params['id'])),
+      map(params => params['id']),
       mergeMap(id => this._profileService.getByIdAsync(id).pipe(
         catchError(error => (error as HttpErrorResponse)?.status == 404 ? of(null) : throwError(error)),
       )),

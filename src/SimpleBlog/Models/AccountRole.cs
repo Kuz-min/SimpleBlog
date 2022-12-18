@@ -2,6 +2,10 @@
 
 namespace SimpleBlog.Models;
 
-public class AccountRole : IdentityRole
+public class AccountRole : IdentityRole<Guid>
 {
+    public AccountRole()
+    {
+        Id = Guid.NewGuid();
+    }
 }

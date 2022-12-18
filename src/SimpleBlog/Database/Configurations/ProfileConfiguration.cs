@@ -14,7 +14,7 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
 
         builder.Property(p => p.Name).IsRequired();
 
-        builder.HasOne(p => p.Account).WithOne(a => a.Profile).HasForeignKey<Profile>(p => p.AccountId).IsRequired();
+        //builder.HasOne(p => p.Account).WithOne(a => a.Profile).HasForeignKey<Profile>(p => p.AccountId).IsRequired();
 
     }
 }

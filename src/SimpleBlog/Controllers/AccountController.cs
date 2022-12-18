@@ -11,11 +11,11 @@ namespace SimpleBlog.Controllers;
 [Route("api/accounts")]
 public class AccountController : ControllerBase
 {
-    public AccountController(ILogger<AccountController> logger, UserManager<Account> accountManager, IProfileService profiles)
+    public AccountController(ILogger<AccountController> logger, UserManager<Account> accountManager, IProfileService profileService)
     {
-        _logger = logger;
-        _accountManager = accountManager;
-        _profiles = profiles;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
     }
 
     [AllowAnonymous]
@@ -61,10 +61,10 @@ public class AccountController : ControllerBase
         Profile? profile;
         try
         {
-            profile = await _profiles.InsertAsync(new Profile()
+            profile = await _profileService.InsertAsync(new Profile()
             {
+                Id = account.Id,
                 Name = request.Username,
-                AccountId = account.Id,
                 CreatedOn = DateTime.Now,
             });
         }
@@ -84,5 +84,5 @@ public class AccountController : ControllerBase
 
     private readonly ILogger<AccountController> _logger;
     private readonly UserManager<Account> _accountManager;
-    private readonly IProfileService _profiles;
+    private readonly IProfileService _profileService;
 }

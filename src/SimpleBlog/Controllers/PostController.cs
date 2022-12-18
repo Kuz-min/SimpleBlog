@@ -13,11 +13,11 @@ namespace SimpleBlog.Controllers;
 [Route("api/posts")]
 public class PostController : BaseController
 {
-    public PostController(ILogger<PostController> logger, IAuthorizationService authorizationService, IPostService posts)
+    public PostController(ILogger<PostController> logger, IAuthorizationService authorizationService, IPostService postService)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-        _posts = posts;
+        _postService = postService ?? throw new ArgumentNullException(nameof(postService));
     }
 
     [HttpGet("{postId:int}")]
@@ -26,7 +26,7 @@ public class PostController : BaseController
         Post? post;
         try
         {
-            post = await _posts.GetByIdAsync(postId);
+            post = await _postService.GetByIdAsync(postId);
         }
         catch (Exception e)
         {
@@ -51,7 +51,7 @@ public class PostController : BaseController
         IEnumerable<Post>? posts;
         try
         {
-            posts = await _posts.GetByIdAsync(ids);
+            posts = await _postService.GetByIdAsync(ids);
         }
         catch (Exception e)
         {
@@ -73,7 +73,7 @@ public class PostController : BaseController
         IEnumerable<Post> posts;
         try
         {
-            posts = await _posts.SearchAsync(request.TagIds, request.Offset, request.Count);
+            posts = await _postService.SearchAsync(request.TagIds, request.Offset, request.Count);
         }
         catch (Exception e)
         {
@@ -117,7 +117,7 @@ public class PostController : BaseController
 
         try
         {
-            await _posts.InsertAsync(post);
+            await _postService.InsertAsync(post);
 
         }
         catch (Exception e)
@@ -142,7 +142,7 @@ public class PostController : BaseController
         Post? post;
         try
         {
-            post = await _posts.GetByIdAsync(postId);
+            post = await _postService.GetByIdAsync(postId);
         }
         catch (Exception e)
         {
@@ -154,7 +154,7 @@ public class PostController : BaseController
             return StatusCode(StatusCodes.Status400BadRequest);
 
 
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, (post, profile), Policies.SameOwner);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
         if (authorizationResult == null || !authorizationResult.Succeeded)
             return StatusCode(StatusCodes.Status403Forbidden);
 
@@ -179,7 +179,7 @@ public class PostController : BaseController
 
         try
         {
-            await _posts.UpdateAsync(post);
+            await _postService.UpdateAsync(post);
 
         }
         catch (Exception e)
@@ -204,7 +204,7 @@ public class PostController : BaseController
         Post? post;
         try
         {
-            post = await _posts.GetByIdAsync(postId);
+            post = await _postService.GetByIdAsync(postId);
         }
         catch (Exception e)
         {
@@ -216,14 +216,14 @@ public class PostController : BaseController
             return StatusCode(StatusCodes.Status400BadRequest);
 
 
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, (post, profile), Policies.SameOwner);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
         if (authorizationResult == null || !authorizationResult.Succeeded)
             return StatusCode(StatusCodes.Status403Forbidden);
 
 
         try
         {
-            await _posts.DeleteAsync(post);
+            await _postService.DeleteAsync(post);
 
         }
         catch (Exception e)
@@ -238,5 +238,5 @@ public class PostController : BaseController
 
     private readonly ILogger<PostController> _logger;
     private readonly IAuthorizationService _authorizationService;
-    private readonly IPostService _posts;
+    private readonly IPostService _postService;
 }

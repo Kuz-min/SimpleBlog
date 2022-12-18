@@ -11,10 +11,10 @@ namespace SimpleBlog.Controllers;
 [Route("api/post-tags")]
 public class PostTagController : BaseController
 {
-    public PostTagController(ILogger<PostTagController> logger, IPostTagService postTags)
+    public PostTagController(ILogger<PostTagController> logger, IPostTagService postTagService)
     {
-        _logger = logger;
-        _postTags = postTags;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _postTagService = postTagService ?? throw new ArgumentNullException(nameof(postTagService));
     }
 
     [HttpGet("{tagId:int}")]
@@ -23,7 +23,7 @@ public class PostTagController : BaseController
         PostTag? tag;
         try
         {
-            tag = await _postTags.GetByIdAsync(tagId);
+            tag = await _postTagService.GetByIdAsync(tagId);
         }
         catch (Exception e)
         {
@@ -43,7 +43,7 @@ public class PostTagController : BaseController
         IEnumerable<PostTag> tags;
         try
         {
-            tags = await _postTags.GetAllAsync();
+            tags = await _postTagService.GetAllAsync();
         }
         catch (Exception e)
         {
@@ -71,7 +71,7 @@ public class PostTagController : BaseController
         PostTag? tag;
         try
         {
-            tag = await _postTags.InsertAsync(new PostTag()
+            tag = await _postTagService.InsertAsync(new PostTag()
             {
                 Title = request.Title,
             });
@@ -98,7 +98,7 @@ public class PostTagController : BaseController
         PostTag? tag;
         try
         {
-            tag = await _postTags.GetByIdAsync(tagId);
+            tag = await _postTagService.GetByIdAsync(tagId);
         }
         catch (Exception e)
         {
@@ -113,7 +113,7 @@ public class PostTagController : BaseController
 
         try
         {
-            await _postTags.UpdateAsync(tag);
+            await _postTagService.UpdateAsync(tag);
 
         }
         catch (Exception e)
@@ -138,7 +138,7 @@ public class PostTagController : BaseController
         PostTag? tag;
         try
         {
-            tag = await _postTags.GetByIdAsync(tagId);
+            tag = await _postTagService.GetByIdAsync(tagId);
         }
         catch (Exception e)
         {
@@ -151,7 +151,7 @@ public class PostTagController : BaseController
 
         try
         {
-            await _postTags.DeleteAsync(tag);
+            await _postTagService.DeleteAsync(tag);
 
         }
         catch (Exception e)
@@ -165,5 +165,5 @@ public class PostTagController : BaseController
     }
 
     private readonly ILogger<PostTagController> _logger;
-    private readonly IPostTagService _postTags;
+    private readonly IPostTagService _postTagService;
 }

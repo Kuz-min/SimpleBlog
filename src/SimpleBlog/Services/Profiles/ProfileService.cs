@@ -12,15 +12,15 @@ public class ProfileService : IProfileService
         _database = database ?? throw new ArgumentNullException(nameof(database));
     }
 
-    public async Task<Profile?> GetByIdAsync(int id)
+    public async Task<Profile?> GetByIdAsync(Guid id)
     {
         return await _database.Profiles.FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task<Profile?> GetByAccountIdAsync(string accountId)
-    {
-        return await _database.Profiles.FirstOrDefaultAsync(p => p.AccountId == accountId);
-    }
+    //public async Task<Profile?> GetByAccountIdAsync(Guid accountId)
+    //{
+    //    return await _database.Profiles.FirstOrDefaultAsync(p => p.AccountId == accountId);
+    //}
 
     public async Task<Profile> InsertAsync(Profile profile)
     {

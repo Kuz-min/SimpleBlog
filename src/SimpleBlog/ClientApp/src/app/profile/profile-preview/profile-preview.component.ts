@@ -10,7 +10,7 @@ import { Profile, ProfileService } from 'simple-blog/core';
 })
 export class ProfilePreviewComponent implements OnInit {
 
-  @Input() profileId: (number | null | undefined);
+  @Input() profileId: (string | null | undefined);
 
   profile: (Observable<Profile | null> | null) = null;
 

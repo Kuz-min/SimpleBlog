@@ -4,7 +4,7 @@ export interface Post {
   content: string,
   createdOn: Date,
 
-  ownerId: number,
+  ownerId: string,
 
   tagIds: number[],
 }

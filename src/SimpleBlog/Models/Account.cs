@@ -2,7 +2,13 @@
 
 namespace SimpleBlog.Models;
 
-public class Account : IdentityUser
+public class Account : IdentityUser<Guid>
 {
-    public Profile Profile { get; set; }
+    //public Profile Profile { get; set; }
+
+    public Account()
+    {
+        Id = Guid.NewGuid();
+        SecurityStamp = Guid.NewGuid().ToString();
+    }
 }

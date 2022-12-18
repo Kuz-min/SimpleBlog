@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database;
 using SimpleBlog.Models;
 
@@ -19,6 +20,9 @@ public class PostTagService : IPostTagService
 
     public async Task<IEnumerable<PostTag>> GetByIdAsync(IEnumerable<int> ids)
     {
+        if (ids == null)
+            throw new ArgumentNullException(nameof(ids));
+
         return await _database.PostTags.Where(pt => ids.Contains(pt.Id)).ToListAsync();
     }
 

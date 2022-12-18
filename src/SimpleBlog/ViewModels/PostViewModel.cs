@@ -7,7 +7,7 @@ public class PostViewModel
     public string content { get; set; }
     public DateTime createdOn { get; set; }
 
-    public int ownerId { get; set; }
+    public string ownerId { get; set; }
 
     public int[]? tagIds { get; set; }
 }
