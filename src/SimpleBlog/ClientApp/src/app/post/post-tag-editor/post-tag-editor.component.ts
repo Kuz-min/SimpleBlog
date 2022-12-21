@@ -1,6 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { BehaviorSubject, catchError, of, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PostTag, PostTagService } from 'simple-blog/core';
 
 @Component({
@@ -10,26 +9,19 @@ import { PostTag, PostTagService } from 'simple-blog/core';
 })
 export class PostTagEditorComponent implements OnInit {
 
-  readonly tags = new BehaviorSubject<PostTag[] | null>(null);
+  tags: (Observable<PostTag[] | null> | null) = null;
 
   constructor(
     private readonly _postTagService: PostTagService,
   ) { }
 
   ngOnInit(): void {
-    this._postTagService.getAllAsync().pipe(
-      catchError(error => (error as HttpErrorResponse)?.status == 404 ? of([]) : throwError(error)),
-    ).subscribe(
-      next => this.tags.next(next),
-    );
+    this.tags = this._postTagService.getAllAsync();
   }
 
   createTag(input: HTMLInputElement): void {
     this._postTagService.createAsync({ title: input.value }).subscribe(
-      next => {
-        this.tags.next(this.tags.value ? [...this.tags.value!, next!] : [next!]);
-        input.value = '';
-      },
+      next => input.value = '',
     );
   }
 
@@ -38,9 +30,7 @@ export class PostTagEditorComponent implements OnInit {
   }
 
   deleteTag(tag: PostTag): void {
-    this._postTagService.deleteAsync(tag.id).subscribe(
-      next => this.tags.next(this.tags.value?.filter(o => o != tag)!),
-    );
+    this._postTagService.deleteAsync(tag.id).subscribe();
   }
 
 }

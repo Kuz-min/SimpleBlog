@@ -1,8 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { first, mergeMap, Observable, shareReplay, tap, throwError, timeout } from 'rxjs';
+import { createStore } from '@ngneat/elf';
+import { deleteEntitiesByPredicate, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
+import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
+import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
+import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError, timeout } from 'rxjs';
 import { Post } from 'simple-blog/core';
-import { Cache } from '../utilities';
 
 @Injectable()
 export class PostService {
@@ -12,26 +15,36 @@ export class PostService {
     private readonly _http: HttpClient,
   ) { }
 
-  public getByIdAsync(id: number): Observable<Post | null> {
+  public getByIdAsync(id: number): Observable<Post> {
+    const key = ['post', id];
 
-    if (!this._cache.contains(id)) {
-      this._http.get<Post>(this._urls.getById(id)).pipe(
+    getRequestResult(key, { initialStatus: 'idle' }).pipe(
+      first(),
+      filter(request => !(request.isLoading)),
+      switchMap(() => this._http.get<Post>(this._urls.getById(id)).pipe(
         first(),
         timeout(3000),
-      ).subscribe(
-        next => this._cache.set(next.id, next),
-        error => console.log(error),
-      );
-    }
+        trackRequestResult(key, { staleTime: 30_000 }),
+      )),
+      catchError(() => EMPTY),
+    ).subscribe(
+      next => this._postStore.update(upsertEntities(next)),
+    );
 
-    return this._cache.getOrCreate(id);
+    return this._postStore.pipe(
+      selectEntity(id),
+      joinRequestResult(key),
+      filter(request => request.status != 'idle' && request.status != 'loading'),
+      switchMap(request => request.isSuccess ? of(request.data as Post) : throwError((request as ErrorRequestResult)?.error)),
+    );
   }
 
-  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<Post[] | null> {
+
+  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<Post[]> {
     let params = new HttpParams();
 
     if (tagIds)
-      params = params.append('tag_ids', tagIds.join(','));
+      params = params.append('tag_ids', tagIds.sort((a, b) => a - b).join(','));
 
     if (offset)
       params = params.append('offset', offset);
@@ -42,25 +55,34 @@ export class PostService {
     return this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
       first(),
       timeout(3000),
-      tap(posts => posts.forEach(post => this._cache.set(post.id, post))),
       shareReplay(),
     );
   }
 
-  public createAsync(data: { title: string, content: string, tagIds?: number[] }): Observable<Post | null> {
+  public createAsync(data: { title: string, content: string, tagIds?: number[] }): Observable<Post> {
     return this._http.post<Post>(this._urls.create(), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      mergeMap(post => this._cache.set(post.id, post)),
+      tap(post => this._postStore.update(upsertEntities(post))),
+      switchMap(post => this._postStore.pipe(
+        selectEntity(post.id),
+        filter(p => Boolean(p)),
+        map(p => p as Post),
+      )),
       shareReplay(),
     );
   }
 
-  public updateAsync(id: number, data: { title: string, content: string, tagIds?: number[] }): Observable<Post | null> {
+  public updateAsync(id: number, data: { title: string, content: string, tagIds?: number[] }): Observable<Post> {
     return this._http.put<Post>(this._urls.update(id), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      mergeMap(post => this._cache.set(post.id, post)),
+      tap(post => this._postStore.update(upsertEntities(post))),
+      switchMap(() => this._postStore.pipe(
+        selectEntity(id),
+        filter(post => Boolean(post)),
+        map(post => post as Post),
+      )),
       shareReplay(),
     );
   }
@@ -69,12 +91,15 @@ export class PostService {
     return this._http.delete<any>(this._urls.delete(id), { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      tap(_ => this._cache.remove(id)),
+      tap(() => this._postStore.update(deleteEntitiesByPredicate(post => post.id == id))),
       shareReplay(),
     );
   }
 
-  private readonly _cache = new Cache<Post>();
+  private readonly _postStore = createStore(
+    { name: 'post-store' },
+    withEntities<Post>(),
+  );
 
   private readonly _urls = {
     getById: (id: number) => `${this._baseUrl}api/posts/${id}`,

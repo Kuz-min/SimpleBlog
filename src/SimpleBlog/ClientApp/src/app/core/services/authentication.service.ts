@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { BehaviorSubject, defer, Observable, tap } from 'rxjs';
@@ -39,7 +38,7 @@ export class AuthenticationService {
     );
   }
 
-  private checkAndUpdateToken() {
+  private checkAndUpdateToken(): void {
     if (!this._isReady || this._isUpdating)
       return;
 

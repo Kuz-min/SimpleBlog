@@ -1,8 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { first, mergeMap, Observable, shareReplay, tap, timeout } from 'rxjs';
+import { createStore } from '@ngneat/elf';
+import { deleteEntitiesByPredicate, selectAllEntities, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
+import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
+import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
+import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError, timeout } from 'rxjs';
 import { PostTag } from 'simple-blog/core';
-import { Cache } from '../utilities';
 
 @Injectable()
 export class PostTagService {
@@ -12,43 +15,67 @@ export class PostTagService {
     private readonly _http: HttpClient,
   ) { }
 
-  public getByIdAsync(id: number): Observable<PostTag | null> {
+  public getByIdAsync(id: number): Observable<PostTag> {
+    const key = ['post-tag-all'];
 
-    if (!this._cache.contains(id)) {
-      this._http.get<PostTag>(this._urls.getById(id)).pipe(
-        first(),
-        timeout(3000),
-      ).subscribe(
-        next => this._cache.set(next.id, next),
-      );
-    }
+    this.getAllAsync().subscribe();
 
-    return this._cache.getOrCreate(id);
-  }
-
-  public getAllAsync(): Observable<PostTag[] | null> {
-    return this._http.get<PostTag[]>(this._urls.getAll()).pipe(
-      first(),
-      timeout(3000),
-      tap(tags => tags.forEach(tag => this._cache.set(tag.id, tag))),
-      shareReplay(),
+    return this._postTagStore.pipe(
+      selectEntity(id),
+      joinRequestResult(key),
+      filter(request => request.status != 'idle' && request.status != 'loading'),
+      switchMap(request => request.isSuccess ? of(request.data as PostTag) : throwError((request as ErrorRequestResult).error)),
     );
   }
 
-  public createAsync(data: { title: string }): Observable<PostTag | null> {
+  public getAllAsync(): Observable<PostTag[]> {
+    const key = ['post-tag-all'];
+
+    getRequestResult(key, { initialStatus: 'idle' }).pipe(
+      first(),
+      filter(request => !(request.isLoading)),
+      switchMap(() => this._http.get<PostTag[]>(this._urls.getAll()).pipe(
+        first(),
+        timeout(3000),
+        trackRequestResult(key, { staleTime: 30_000 }),
+      )),
+      catchError(() => EMPTY),
+    ).subscribe(
+      next => this._postTagStore.update(upsertEntities(next)),
+    );
+
+    return this._postTagStore.pipe(
+      selectAllEntities(),
+      joinRequestResult(key),
+      filter(request => request.status != 'idle' && request.status != 'loading'),
+      switchMap(request => request.isSuccess ? of(request.data as PostTag[]) : throwError((request as ErrorRequestResult).error)),
+    );
+  }
+
+  public createAsync(data: { title: string }): Observable<PostTag> {
     return this._http.post<PostTag>(this._urls.create(), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      mergeMap(tag => this._cache.set(tag.id, tag)),
+      tap(postTag => this._postTagStore.update(upsertEntities(postTag))),
+      switchMap(postTag => this._postTagStore.pipe(
+        selectEntity(postTag.id),
+        filter(p => Boolean(p)),
+        map(p => p as PostTag),
+      )),
       shareReplay(),
     );
   }
 
-  public updateAsync(id: number, data: { title: string }): Observable<PostTag | null> {
+  public updateAsync(id: number, data: { title: string }): Observable<PostTag> {
     return this._http.put<PostTag>(this._urls.update(id), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      mergeMap(tag => this._cache.set(tag.id, tag)),
+      tap(postTag => this._postTagStore.update(upsertEntities(postTag))),
+      switchMap(() => this._postTagStore.pipe(
+        selectEntity(id),
+        filter(postTag => Boolean(postTag)),
+        map(postTag => postTag as PostTag),
+      )),
       shareReplay(),
     );
   }
@@ -57,15 +84,18 @@ export class PostTagService {
     return this._http.delete<any>(this._urls.delete(id), { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
-      tap(_ => this._cache.remove(id)),
+      tap(() => this._postTagStore.update(deleteEntitiesByPredicate(postTag => postTag.id == id))),
       shareReplay(),
     );
   }
 
-  private readonly _cache = new Cache<PostTag>();
+  private readonly _postTagStore = createStore(
+    { name: 'post-tag-store' },
+    withEntities<PostTag>(),
+  );
 
   private readonly _urls = {
-    getById: (id: number) => `${this._baseUrl}api/post-tags/${id}`,
+    //getById: (id: number) => `${this._baseUrl}api/post-tags/${id}`,
     getAll: () => `${this._baseUrl}api/post-tags`,
     create: () => `${this._baseUrl}api/post-tags`,
     update: (id: number) => `${this._baseUrl}api/post-tags/${id}`,
