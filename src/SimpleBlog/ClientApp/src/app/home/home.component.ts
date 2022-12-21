@@ -28,7 +28,7 @@ export class HomeComponent implements OnInit {
     );
 
     this.posts = this._route.queryParams.pipe(
-      map(params => params['tag_ids']?.split(',')?.map((o: string) => Number(o)) || []),
+      map(params => params['tag_ids']?.split(',')?.map((o: string) => Number(o)) || null),
       tap(tagIds => this.selectedTags = tagIds),
       mergeMap(tagIds => this._postService.searchAsync(tagIds).pipe(
         catchError(error => (error as HttpErrorResponse)?.status == 404 ? of([]) : throwError(error)),

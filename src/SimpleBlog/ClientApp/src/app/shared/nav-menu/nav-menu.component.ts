@@ -21,10 +21,19 @@ export class NavMenuComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+
     this.isAuthenticated = this._authService.isAuthenticatedAsync();
+
     this.mainMenu.subscribe(
-      next => next.isExpanded ? this._scrollService.lockScroll() : this._scrollService.unlockScroll(),
-    );
+      next => {
+        if (next.isExpanded) {
+          this._scrollService.lockScroll();
+          this._scrollService.scrollToPosition([0, 0]);
+        } else {
+          this._scrollService.unlockScroll();
+        }
+      });
+
   }
 
   toggleMainMenu(): void {
