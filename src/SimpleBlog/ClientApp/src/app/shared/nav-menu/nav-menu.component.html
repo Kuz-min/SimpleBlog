@@ -11,6 +11,10 @@
 
     </div>
 
+    <div *ngIf="(currentProfile | async)" class="d-flex order-md-5">
+      {{(currentProfile | async)?.name}}
+    </div>
+
     <div class="navbar-collapse collapse d-md-inline-flex justify-content-end" [ngClass]="{ show: (mainMenu | async)?.isExpanded }">
       <div class="navbar-nav-background bg-light"></div>
       <ul class="navbar-nav bg-light">

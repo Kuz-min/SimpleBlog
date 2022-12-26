@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AuthenticationService, ScrollService } from 'simple-blog/core';
+import { AuthenticationService, Profile, ProfileService, ScrollService } from 'simple-blog/core';
 
 @Component({
   selector: 'app-nav-menu',
@@ -11,6 +11,7 @@ import { AuthenticationService, ScrollService } from 'simple-blog/core';
 export class NavMenuComponent implements OnInit {
 
   isAuthenticated: (Observable<boolean> | null) = null;
+  currentProfile: (Observable<Profile | null> | null) = null;
 
   readonly mainMenu = new BehaviorSubject<{ isExpanded: boolean }>({ isExpanded: false });
   readonly profileMenu = new BehaviorSubject<{ isExpanded: boolean }>({ isExpanded: false });
@@ -18,11 +19,14 @@ export class NavMenuComponent implements OnInit {
   constructor(
     private readonly _scrollService: ScrollService,
     private readonly _authService: AuthenticationService,
+    private readonly _profileService: ProfileService,
   ) { }
 
   ngOnInit(): void {
 
     this.isAuthenticated = this._authService.isAuthenticatedAsync();
+
+    this.currentProfile = this._profileService.getCurrentAsync();
 
     this.mainMenu.subscribe(
       next => {
