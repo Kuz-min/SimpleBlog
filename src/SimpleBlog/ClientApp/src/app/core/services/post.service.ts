@@ -55,6 +55,12 @@ export class PostService {
     return this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
       first(),
       timeout(3000),
+      tap(posts => of(posts).pipe(
+        map(posts => posts.map(post => of(post).pipe(
+          trackRequestResult(['post', post.id], { staleTime: 30_000 }),
+          tap(p => this._postStore.update(upsertEntities(p))),
+        ).subscribe())),
+      ).subscribe()),
       shareReplay(),
     );
   }
