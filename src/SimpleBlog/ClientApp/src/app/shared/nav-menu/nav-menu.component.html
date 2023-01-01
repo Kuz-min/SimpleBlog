@@ -11,31 +11,48 @@
 
     </div>
 
-    <div *ngIf="(currentProfile | async)" class="d-flex order-md-5">
-      {{(currentProfile | async)?.name}}
+    <div *ngIf="(currentProfile | async)" class="d-block order-md-5">
+
+      <button class="" type="button" (click)="toggleProfileMenu()">
+        {{(currentProfile | async)?.name}}
+      </button>
+
+      <div class="navbar-profile-menu collapse" [ngClass]="{ show: (profileMenu | async)?.isExpanded }">
+
+        <ul class="navbar-nav navbar-profile-nav bg-light">
+
+          <li class="nav-item" (click)="collapseProfileMenu()">
+            <a class="nav-link text-dark" [routerLink]="['/profiles', (currentProfile | async)?.id]">Profile</a>
+          </li>
+
+
+        </ul>
+
+      </div>
+
     </div>
 
-    <div class="navbar-collapse collapse d-md-inline-flex justify-content-end" [ngClass]="{ show: (mainMenu | async)?.isExpanded }">
-      <div class="navbar-nav-background bg-light"></div>
-      <ul class="navbar-nav bg-light">
+    <div class="navbar-collapse navbar-main-menu collapse d-md-inline-flex justify-content-end" [ngClass]="{ show: (mainMenu | async)?.isExpanded }">
+      <div class="navbar-main-nav-background bg-light"></div>
+      <ul class="navbar-nav navbar-main-nav bg-light">
 
-        <li class="nav-item" (click)="collapseMainMenu()">
+        <li class="nav-item main-nav-item" (click)="collapseMainMenu()">
           <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
         </li>
 
-        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
+        <li class="nav-item main-nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
           <a class="nav-link text-dark" [routerLink]="['/posts/create']">New Post</a>
         </li>
 
-        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
+        <li class="nav-item main-nav-item" (click)="collapseMainMenu()" *ngIf="(isAuthenticated | async)">
           <a class="nav-link text-dark" [routerLink]="['/post-tags/edit']">Edit tags</a>
         </li>
 
-        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
+        <li class="nav-item main-nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
           <a class="nav-link text-dark" [routerLink]="['/sign-in']">Sign In</a>
         </li>
 
-        <li class="nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
+        <li class="nav-item main-nav-item" (click)="collapseMainMenu()" *ngIf="!(isAuthenticated | async)">
           <a class="nav-link text-dark" [routerLink]="['/sign-up']">Sign Up</a>
         </li>
 
