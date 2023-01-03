@@ -40,6 +40,10 @@ export class NavMenuComponent implements OnInit {
 
   }
 
+  signOut(): void {
+    this._authService.signOut();
+  }
+
   toggleMainMenu(): void {
     this.mainMenu.next({ isExpanded: !this.mainMenu.value.isExpanded });
   }

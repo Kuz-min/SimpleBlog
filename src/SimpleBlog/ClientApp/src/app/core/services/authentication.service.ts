@@ -38,6 +38,12 @@ export class AuthenticationService {
     );
   }
 
+  public signOut(): void {
+    this._oAuthService.logOut();
+    this._isAuthenticated.next(false);
+    this._token.next(null);
+
+  }
   private checkAndUpdateToken(): void {
     if (!this._isReady || this._isUpdating)
       return;

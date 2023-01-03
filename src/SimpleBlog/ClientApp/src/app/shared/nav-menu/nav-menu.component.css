@@ -43,6 +43,14 @@
   z-index: 200;
 }
 
+.navbar-profile-menu-toggler {
+  padding-right: var(--bs-navbar-nav-link-padding-x);
+  padding-left: var(--bs-navbar-nav-link-padding-x);
+  border: none;
+  font-size: var(--bs-nav-link-font-size);
+  font-weight: var(--bs-nav-link-font-weight);
+}
+
 .navbar-profile-nav {
   position: absolute;
   top: 100%;
@@ -50,4 +58,9 @@
   display: flex;
   flex-direction: column;
   border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+}
+
+.profile-nav-item {
+  padding-right: var(--bs-navbar-nav-link-padding-x);
+  padding-left: var(--bs-navbar-nav-link-padding-x);
 }
