@@ -1,16 +1,13 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthenticationService } from 'simple-blog/core';
 
 @Component({
-  selector: 'shared-header',
-  templateUrl: './header.component.html',
+  selector: 'shared-main-side-menu',
+  templateUrl: './main-side-menu.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HeaderComponent implements OnInit {
-
-  @Output() readonly menuToggle = new EventEmitter<boolean>();
-  @Output() readonly profileToggle = new EventEmitter<boolean>();
+export class MainSideMenuComponent implements OnInit {
 
   isAuthenticated: (Observable<boolean> | null) = null;
 

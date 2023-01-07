@@ -20,9 +20,9 @@ import { SharedModule } from './shared/shared.module';
   ],
   imports: [
     CoreModule,
-    HttpClientModule,
     BrowserModule, //.withServerTransition({ appId: 'ng-cli-universal' }),
     FormsModule,
+    HttpClientModule,
 
     MatListModule,
 

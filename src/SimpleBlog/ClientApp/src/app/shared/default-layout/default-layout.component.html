@@ -1,0 +1,25 @@
+<mat-sidenav-container class="min-vh-100">
+
+
+  <mat-sidenav #mainSidenav mode="over" class="w-50 w-xl-25 p-2">
+    <shared-main-side-menu></shared-main-side-menu>
+  </mat-sidenav>
+
+
+  <mat-sidenav #profileSidenav mode="over" class="w-50 w-xl-25 p-2" position="end">
+    <shared-profile-side-menu></shared-profile-side-menu>
+  </mat-sidenav>
+
+
+  <mat-sidenav-content>
+
+    <shared-header (menuToggle)="mainSidenav.toggle()" (profileToggle)="profileSidenav.toggle()"></shared-header>
+
+    <div class="container">
+      <ng-content></ng-content>
+    </div>
+
+  </mat-sidenav-content>
+
+
+</mat-sidenav-container>

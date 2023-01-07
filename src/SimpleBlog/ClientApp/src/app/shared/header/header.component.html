@@ -1,3 +1,37 @@
-<header>
-  <app-nav-menu></app-nav-menu>
-</header>
+<nav class="navbar navbar-expand-md bg-light border-bottom mb-3">
+  <div class="container flex-nowrap">
+
+    <div class="d-flex">
+
+      <button class="btn d-flex d-md-none me-2 border" type="button" (click)="menuToggle.emit(true)">
+        <mat-icon fontSet="material-icons-outlined">menu</mat-icon>
+      </button>
+
+      <a class="navbar-brand" [routerLink]="['/']">Simple Blog</a>
+
+    </div>
+
+    <div class="d-none d-md-flex flex-fill justify-content-end">
+      <ul class="navbar-nav bg-light">
+
+        <li class="nav-item">
+          <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-dark" [routerLink]="['/posts/create']" *ngIf="(isAuthenticated | async)">New Post</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-dark" [routerLink]="['/post-tags/edit']" *ngIf="(isAuthenticated | async)">Edit tags</a>
+        </li>
+
+      </ul>
+    </div>
+
+    <button class="btn d-flex border" type="button" (click)="profileToggle.emit(true)">
+      <mat-icon fontSet="material-icons-outlined">account_circle</mat-icon>
+    </button>
+
+  </div>
+</nav>
