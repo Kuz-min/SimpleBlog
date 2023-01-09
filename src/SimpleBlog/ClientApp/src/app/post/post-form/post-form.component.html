@@ -12,8 +12,8 @@
 
   <div class="form-group m-2">
     <label class="mb-2">Tags: </label>
-    <mat-selection-list class="border rounded-2" formControlName="tagIds">
-      <mat-list-option disableRipple *ngFor="let tag of (tags | async)" [value]="tag.id">
+    <mat-selection-list class="p-0 border rounded-2" formControlName="tagIds">
+      <mat-list-option *ngFor="let tag of (tags | async)" [value]="tag.id">
         <div>{{tag.title}}</div>
       </mat-list-option>
     </mat-selection-list>
