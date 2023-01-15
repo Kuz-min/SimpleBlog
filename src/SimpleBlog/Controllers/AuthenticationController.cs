@@ -46,7 +46,7 @@ public class AuthenticationController : ControllerBase
                 return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
-            var principal = BuildClaimsPrincipal(account);
+            var principal = await BuildClaimsPrincipal(account);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -76,7 +76,7 @@ public class AuthenticationController : ControllerBase
                 return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
-            var principal = BuildClaimsPrincipal(account);
+            var principal = await BuildClaimsPrincipal(account);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -96,7 +96,7 @@ public class AuthenticationController : ControllerBase
         });
     }
 
-    private ClaimsPrincipal BuildClaimsPrincipal(Account account)
+    private async Task<ClaimsPrincipal> BuildClaimsPrincipal(Account account)
     {
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
@@ -108,6 +108,9 @@ public class AuthenticationController : ControllerBase
 
         identity.AddClaim(ClaimTypes.Email, account.Email);
         identity.AddClaim(OpenIddictConstants.Claims.Email, account.Email);
+
+        foreach (var role in await _accountManager.GetRolesAsync(account))
+            identity.AddClaim(OpenIddictConstants.Claims.Role, role, OpenIddictConstants.Destinations.AccessToken);
 
         //identity.AddClaim("profile_id", account.Profile.Id.ToString(), OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken);
 
