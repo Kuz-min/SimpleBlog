@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SimpleBlog.Authorization;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
@@ -60,6 +61,7 @@ public class PostTagController : BaseController
     }
 
     [Authorize]
+    [Authorize(Policies.PostTagFullAccess)]
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] PostTagCreateRequestModel request)
     {
@@ -87,6 +89,7 @@ public class PostTagController : BaseController
     }
 
     [Authorize]
+    [Authorize(Policies.PostTagFullAccess)]
     [HttpPut("{tagId:int}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] int tagId, [FromBody] PostTagUpdateRequestModel request)
     {
@@ -127,6 +130,7 @@ public class PostTagController : BaseController
     }
 
     [Authorize]
+    [Authorize(Policies.PostTagFullAccess)]
     [HttpDelete("{tagId:int}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] int tagId)
     {

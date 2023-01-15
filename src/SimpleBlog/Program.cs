@@ -77,9 +77,11 @@ public class Program
                 .Build();
 
             options.AddPolicy(Policies.SameOwner, policy => policy.Requirements.Add(new SameOwnerRequirement()));
+            options.AddPolicy(Policies.PostTagFullAccess, policy => policy.Requirements.Add(new PostTagFullAccessRequirement()));
         });
 
         builder.Services.AddSingleton<IAuthorizationHandler, PostSameOwnerAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, PostTagFullAccessAuthorizationHandler>();
 
         //MyServices
         builder.Services.AddScoped<IProfileService, ProfileService>();
