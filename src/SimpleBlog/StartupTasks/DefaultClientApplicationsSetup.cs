@@ -3,9 +3,9 @@ using SimpleBlog.Configuration;
 
 namespace SimpleBlog.StartupTasks;
 
-public class AuthenticationStartupTask
+public class DefaultClientApplicationsSetup
 {
-    public AuthenticationStartupTask(IServiceProvider serviceProvider)
+    public DefaultClientApplicationsSetup(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
@@ -16,33 +16,36 @@ public class AuthenticationStartupTask
 
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        var clientAppConfigs = new List<ClientApplicationConfiguration>();
+        var configs = new List<DefaultClientAppConfiguration>();
 
-        foreach (var rawClientAppConfig in configuration.GetSection(ClientApplicationConfiguration.SectionName).GetChildren())
+        foreach (var rawConfig in configuration.GetSection(DefaultClientAppConfiguration.SectionName).GetChildren())
         {
-            var clientAppConfig = new ClientApplicationConfiguration();
-            rawClientAppConfig.Bind(clientAppConfig, options => options.BindNonPublicProperties = true);
-            clientAppConfigs.Add(clientAppConfig);
+            var config = new DefaultClientAppConfiguration();
+            rawConfig.Bind(config, options => options.BindNonPublicProperties = true);
+            configs.Add(config);
         }
 
-        if (!clientAppConfigs.All(config => config.IsValid()))
+        if (configs.Count == 0)
+            return;
+
+        if (!configs.All(config => config.IsValid()))
             throw new InvalidOperationException("Client Application Configuration is not valid");
 
         var clientAppManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        foreach (var clientAppConfig in clientAppConfigs)
+        foreach (var config in configs)
         {
-            var clientApp = await clientAppManager.FindByClientIdAsync(clientAppConfig.Id);
+            var clientApp = await clientAppManager.FindByClientIdAsync(config.Id);
 
             if (clientApp is null)
             {
                 var clientAppDescriptor = new OpenIddictApplicationDescriptor()
                 {
-                    ClientId = clientAppConfig.Id,
-                    ClientSecret = clientAppConfig.Secret,
-                    DisplayName = clientAppConfig.Name,
+                    ClientId = config.Id,
+                    ClientSecret = config.Secret,
+                    DisplayName = config.Name,
                 };
-                foreach (var permission in clientAppConfig.Permissions.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                foreach (var permission in config.Permissions.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                     clientAppDescriptor.Permissions.Add(permission);
 
                 await clientAppManager.CreateAsync(clientAppDescriptor);
