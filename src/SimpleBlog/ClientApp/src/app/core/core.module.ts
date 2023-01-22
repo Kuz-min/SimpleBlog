@@ -2,7 +2,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { IsAuthenticatedGuard } from './guards';
 import { AddTokenInterceptor } from './interceptors';
-import { AccountService, AuthenticationService, PostService, PostTagService, ProfileService } from './services';
+import { AccountService, AuthenticationService, AuthorizationService, PostService, PostTagService, ProfileService } from './services';
 
 @NgModule({
   providers: [
@@ -10,6 +10,7 @@ import { AccountService, AuthenticationService, PostService, PostTagService, Pro
     { provide: HTTP_INTERCEPTORS, useClass: AddTokenInterceptor, multi: true },
     AccountService,
     AuthenticationService,
+    AuthorizationService,
     PostService,
     PostTagService,
     ProfileService,
