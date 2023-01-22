@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { createStore } from '@ngneat/elf';
 import { deleteEntitiesByPredicate, selectAllEntities, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
@@ -37,6 +37,7 @@ export class PostTagService {
       switchMap(() => this._http.get<PostTag[]>(this._urls.getAll()).pipe(
         first(),
         timeout(3000),
+        catchError(error => error instanceof HttpErrorResponse && error.status == 404 ? of([]) : throwError(error)),
         trackRequestResult(key, { staleTime: 30_000 }),
       )),
       catchError(() => EMPTY),
