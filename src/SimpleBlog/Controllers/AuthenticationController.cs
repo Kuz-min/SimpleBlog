@@ -118,7 +118,12 @@ public class AuthenticationController : ControllerBase
 
         var principal = new ClaimsPrincipal(identity);
 
-        principal.SetScopes(new string[] { OpenIddictConstants.Scopes.OfflineAccess });
+        principal.SetScopes(new string[]
+        {
+            OpenIddictConstants.Scopes.OpenId,
+            OpenIddictConstants.Scopes.Roles,
+            OpenIddictConstants.Scopes.OfflineAccess,
+        });
 
         return principal;
     }

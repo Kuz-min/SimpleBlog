@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using SimpleBlog.Authorization;
 using SimpleBlog.Database;
@@ -58,6 +59,7 @@ public class Program
             {
                 options.SetTokenEndpointUris("/auth/token");
                 options.AllowPasswordFlow().AllowRefreshTokenFlow();
+                options.RegisterScopes(new string[] { OpenIddictConstants.Scopes.Roles });
                 options.UseAspNetCore().EnableTokenEndpointPassthrough();//.DisableTransportSecurityRequirement();
                 options.AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate().DisableAccessTokenEncryption();
             })

@@ -10,9 +10,16 @@ export class AuthenticationService {
     this._oAuthService.issuer = `${window.location.protocol}//${window.location.host}/`;//https://localhost:44468/
     this._oAuthService.clientId = 'simple-blog-web-client';
     this._oAuthService.dummyClientSecret = 'simple-blog-web-client';
-    this._oAuthService.scope = "offline_access";
-    this._oAuthService.responseType = 'token';
-    this._oAuthService.oidc = false;
+    this._oAuthService.scope = "openid roles offline_access";
+    this._oAuthService.responseType = 'id_token token';
+    this._oAuthService.oidc = true;
+
+    //disable nonce check for password flow
+    this._oAuthService.processIdToken = (idToken: string, accessToken: string, skipNonceCheck?: boolean): any => {
+      let method = (OAuthService).prototype.processIdToken;
+      let that = this._oAuthService;
+      return method.call(that, idToken, accessToken, skipNonceCheck === undefined ? true : skipNonceCheck);
+    };
 
     this._oAuthService.loadDiscoveryDocument()
       .then(() => { this._isReady = true; this.checkAndUpdateToken(); })
