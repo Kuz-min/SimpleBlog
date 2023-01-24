@@ -106,13 +106,15 @@ public class AuthenticationController : ControllerBase
         identity.AddClaim(ClaimTypes.Name, account.UserName);
         identity.AddClaim(OpenIddictConstants.Claims.Name, account.UserName);
 
-        identity.AddClaim(ClaimTypes.Email, account.Email);
-        identity.AddClaim(OpenIddictConstants.Claims.Email, account.Email);
-
         foreach (var role in await _accountManager.GetRolesAsync(account))
-            identity.AddClaim(OpenIddictConstants.Claims.Role, role, OpenIddictConstants.Destinations.AccessToken);
+            identity.AddClaim(OpenIddictConstants.Claims.Role, role);
 
-        //identity.AddClaim("profile_id", account.Profile.Id.ToString(), OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken);
+        identity.SetDestinations(claim => claim.Type switch
+        {
+            OpenIddictConstants.Claims.Role => new[] { OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken },
+            OpenIddictConstants.Claims.Name => new[] { OpenIddictConstants.Destinations.IdentityToken },
+            _ => new string[] { }
+        });
 
         var principal = new ClaimsPrincipal(identity);
 
