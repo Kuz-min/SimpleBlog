@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
 using SimpleBlog.ViewModels.ModelExtensions;
@@ -14,18 +13,6 @@ public class ProfileController : BaseController
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
-    }
-
-    [Authorize]
-    [HttpGet("current")]
-    public async Task<IActionResult> GetCurrentAsync()
-    {
-        var profile = await GetProfileAsync();
-
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        return Ok(profile.ToViewModel());
     }
 
     [HttpGet("{profileId:guid}")]

@@ -1,6 +1,6 @@
-<h2 class="text-center" *ngIf="(isAuthenticated | async)">{{(currentProfile | async)?.name}}</h2>
+<h2 class="text-center" *ngIf="(isAuthenticated | async)">{{(name | async)}}</h2>
 
-<a class="btn w-100 my-2 btn-light" [routerLink]="['/profiles', (currentProfile | async)?.id]" *ngIf="(isAuthenticated | async)">Profile</a>
+<a class="btn w-100 my-2 btn-light" [routerLink]="['/profiles', (id | async)]" *ngIf="(isAuthenticated | async)">Profile</a>
 
 <a class="btn w-100 my-2 btn-light" [routerLink]="['/sign-in']" *ngIf="!(isAuthenticated | async)">Sign In</a>
 

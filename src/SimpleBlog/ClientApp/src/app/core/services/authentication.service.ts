@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { BehaviorSubject, defer, Observable, tap } from 'rxjs';
+import { BehaviorSubject, defer, Observable, of, switchMap, tap } from 'rxjs';
 
 @Injectable()
 export class AuthenticationService {
@@ -34,6 +34,27 @@ export class AuthenticationService {
   public getTokenAsync(): Observable<string | null> {
     this.checkAndUpdateToken();
     return this._token.asObservable();
+  }
+
+  public getIdAsync(): Observable<string | null> {
+    this.checkAndUpdateToken();
+    return this._isAuthenticated.pipe(
+      switchMap(() => of(this._oAuthService.getIdentityClaims()['sub'] ?? null)),
+    );
+  }
+
+  public getNameAsync(): Observable<string | null> {
+    this.checkAndUpdateToken();
+    return this._isAuthenticated.pipe(
+      switchMap(() => of(this._oAuthService.getIdentityClaims()['name'] ?? null)),
+    );
+  }
+
+  public getRolesAsync(): Observable<string[] | null> {
+    this.checkAndUpdateToken();
+    return this._isAuthenticated.pipe(
+      switchMap(() => of(this._oAuthService.getIdentityClaims()['role'] ?? null)),
+    );
   }
 
   public signInAsync(data: { username: string, password: string }): Observable<any> {

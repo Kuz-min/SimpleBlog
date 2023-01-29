@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
-import { Post, ProfileService } from 'simple-blog/core';
+import { AuthenticationService, Post } from 'simple-blog/core';
 
 @Injectable()
 export class AuthorizationService {
 
   constructor(
-    private readonly _profileService: ProfileService,
+    private readonly _authService: AuthenticationService,
   ) { }
 
   public isAuthorizedToEditPost(post: Observable<Post | null>): Observable<boolean> {
-    return combineLatest(this._profileService.getCurrentAsync(), post).pipe(
-      map(([profile, post]) => profile && post && post.ownerId == profile.id ? true : false),
+    return combineLatest(this._authService.getIdAsync(), post).pipe(
+      map(([id, post]) => id && post && post.ownerId == id ? true : false),
     );
   }
 

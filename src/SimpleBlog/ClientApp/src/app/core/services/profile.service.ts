@@ -4,8 +4,8 @@ import { createStore } from '@ngneat/elf';
 import { selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, distinctUntilChanged, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, throwError, timeout } from 'rxjs';
-import { AuthenticationService, Profile } from 'simple-blog/core';
+import { catchError, EMPTY, filter, first, Observable, of, switchMap, throwError, timeout } from 'rxjs';
+import { Profile } from 'simple-blog/core';
 
 @Injectable()
 export class ProfileService {
@@ -13,21 +13,7 @@ export class ProfileService {
   constructor(
     @Inject('BASE_URL') private readonly _baseUrl: string,
     private readonly _http: HttpClient,
-    private readonly _authenticationService: AuthenticationService
-  ) {
-
-    this._currentProfile = this._authenticationService.isAuthenticatedAsync().pipe(
-      distinctUntilChanged(),
-      switchMap(isAuthenticated => isAuthenticated ? this._http.get<Profile>(this._urls.getCurrent(), { headers: { 'Authorization': '' } }) : of(null)),
-      switchMap(profile => profile ? this._profileStore.pipe(selectEntity(profile.id), map(p => p ? p : profile)) : of(null)),
-      shareReplay(),
-    );
-
-  }
-
-  public getCurrentAsync(): Observable<Profile | null> {
-    return this._currentProfile;
-  }
+  ) { }
 
   public getByIdAsync(id: string): Observable<Profile> {
     const key = ['profile', id];
@@ -53,15 +39,12 @@ export class ProfileService {
     );
   }
 
-  private readonly _currentProfile: Observable<Profile | null>;
-
   private readonly _profileStore = createStore(
     { name: 'profile-store' },
     withEntities<Profile>(),
   );
 
   private readonly _urls = {
-    getCurrent: () => `${this._baseUrl}api/profiles/current`,
     getById: (id: string) => `${this._baseUrl}api/profiles/${id}`,
   }
 }
