@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Authorization;
 using SimpleBlog.Models;
+using SimpleBlog.ViewModels;
 using SimpleBlog.ViewModels.ModelExtensions;
 
 namespace SimpleBlog.Controllers;
@@ -50,12 +51,14 @@ public class AccountRoleController : ControllerBase
             if (roles == null)
                 return NotFound();
 
-            var vm = await Task.WhenAll(roles.Select(async role =>
+            var vm = new List<AccountRoleViewModel>(roles.Length);
+
+            foreach (var role in roles)
             {
                 var claims = await _roleManager.GetClaimsAsync(role);
                 var permissions = claims.Where(c => c.Type == SimpleBlogClaims.Permission).Select(c => c.Value);
-                return role.ToViewModel(permissions);
-            }));
+                vm.Add(role.ToViewModel(permissions));
+            }
 
             return Ok(vm);
         }
