@@ -1,4 +1,5 @@
 export * from './account.service';
+export * from './account-role.service';
 export * from './authentication.service';
 export * from './authorization.service';
 export * from './post.service';
