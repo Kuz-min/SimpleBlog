@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { BehaviorSubject, defer, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, defer, delay, Observable, of, switchMap, tap } from 'rxjs';
 
 @Injectable()
 export class AuthenticationService {
@@ -39,21 +39,24 @@ export class AuthenticationService {
   public getIdAsync(): Observable<string | null> {
     this.checkAndUpdateToken();
     return this._isAuthenticated.pipe(
-      switchMap(() => of(this._oAuthService.getIdentityClaims()['sub'] ?? null)),
+      delay(1),//this fixes empty claims after sign in
+      switchMap(() => of(this._oAuthService.getIdentityClaims()?.['sub'] ?? null)),
     );
   }
 
   public getNameAsync(): Observable<string | null> {
     this.checkAndUpdateToken();
     return this._isAuthenticated.pipe(
-      switchMap(() => of(this._oAuthService.getIdentityClaims()['name'] ?? null)),
+      delay(1),//this fixes empty claims after sign in
+      switchMap(() => of(this._oAuthService.getIdentityClaims()?.['name'] ?? null)),
     );
   }
 
   public getRolesAsync(): Observable<string[] | null> {
     this.checkAndUpdateToken();
     return this._isAuthenticated.pipe(
-      switchMap(() => of(this._oAuthService.getIdentityClaims()['role'] ?? null)),
+      delay(1),//this fixes empty claims after sign in
+      switchMap(() => of(this._oAuthService.getIdentityClaims()?.['role'] ?? null)),
     );
   }
 
