@@ -4,4 +4,4 @@
 
 <a class="btn w-100 my-2 btn-light" [routerLink]="['/posts/create']" *ngIf="(isAuthenticated | async)">New Post</a>
 
-<a class="btn w-100 my-2 btn-light" [routerLink]="['/post-tags/edit']" *ngIf="(isAuthenticated | async)">Edit tags</a>
+<a class="btn w-100 my-2 btn-light" [routerLink]="['/post-tags/edit']" *ngIf="(isAuthorizedToEditPostTags | async)">Edit tags</a>
