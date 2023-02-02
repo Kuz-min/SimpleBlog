@@ -9,6 +9,7 @@ public interface IBlogDatabase
     DbSet<Profile> Profiles { get; }
     DbSet<PostTag> PostTags { get; }
     DbSet<Post_PostTag> Post_PostTags { get; }
+    DbSet<AccountRole> Roles { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

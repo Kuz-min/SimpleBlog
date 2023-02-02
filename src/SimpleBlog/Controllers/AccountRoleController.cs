@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SimpleBlog.Authorization;
-using SimpleBlog.Models;
-using SimpleBlog.ViewModels;
+﻿using Microsoft.AspNetCore.Mvc;
+using SimpleBlog.Services;
 using SimpleBlog.ViewModels.ModelExtensions;
+using System.Data;
 
 namespace SimpleBlog.Controllers;
 
@@ -12,10 +9,10 @@ namespace SimpleBlog.Controllers;
 [Route("api/account-roles")]
 public class AccountRoleController : ControllerBase
 {
-    public AccountRoleController(ILogger<AccountRoleController> logger, RoleManager<AccountRole> roleManager)
+    public AccountRoleController(ILogger<AccountRoleController> logger, IAccountRoleService roleService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+        _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
     }
 
     [HttpGet("{roleName}")]
@@ -23,16 +20,12 @@ public class AccountRoleController : ControllerBase
     {
         try
         {
-            var role = await _roleManager.FindByNameAsync(roleName);
+            var role = await _roleService.GetByNameAsync(roleName);
 
             if (role == null)
                 return NotFound();
 
-            var claims = await _roleManager.GetClaimsAsync(role);
-
-            var permissions = claims.Where(c => c.Type == SimpleBlogClaims.Permission).Select(c => c.Value);
-
-            return Ok(role.ToViewModel(permissions));
+            return Ok(role.ToViewModel());
         }
         catch (Exception e)
         {
@@ -46,19 +39,12 @@ public class AccountRoleController : ControllerBase
     {
         try
         {
-            var roles = await _roleManager.Roles.ToArrayAsync();
+            var roles = await _roleService.GetAllAsync();
 
-            if (roles == null)
+            if (roles == null || roles.Count() < 1)
                 return NotFound();
 
-            var vm = new List<AccountRoleViewModel>(roles.Length);
-
-            foreach (var role in roles)
-            {
-                var claims = await _roleManager.GetClaimsAsync(role);
-                var permissions = claims.Where(c => c.Type == SimpleBlogClaims.Permission).Select(c => c.Value);
-                vm.Add(role.ToViewModel(permissions));
-            }
+            var vm = roles.Select(r => r.ToViewModel());
 
             return Ok(vm);
         }
@@ -70,5 +56,5 @@ public class AccountRoleController : ControllerBase
     }
 
     private readonly ILogger<AccountRoleController> _logger;
-    private readonly RoleManager<AccountRole> _roleManager;
+    private readonly IAccountRoleService _roleService;
 }

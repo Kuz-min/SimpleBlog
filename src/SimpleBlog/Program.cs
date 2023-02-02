@@ -86,6 +86,7 @@ public class Program
         builder.Services.AddSingleton<IAuthorizationHandler, PostTagFullAccessAuthorizationHandler>();
 
         //MyServices
+        builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
         builder.Services.AddScoped<IProfileService, ProfileService>();
         builder.Services.AddScoped<IPostService, PostService>();
         builder.Services.AddScoped<IPostTagService, PostTagService>();

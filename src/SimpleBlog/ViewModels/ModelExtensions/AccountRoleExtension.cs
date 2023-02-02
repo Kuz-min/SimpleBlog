@@ -1,12 +1,13 @@
-﻿using SimpleBlog.Models;
+﻿using SimpleBlog.Authorization;
+using SimpleBlog.Models;
 
 namespace SimpleBlog.ViewModels.ModelExtensions;
 
 public static class AccountRoleExtension
 {
-    public static AccountRoleViewModel ToViewModel(this AccountRole role, IEnumerable<string>? permissions) => new AccountRoleViewModel()
+    public static AccountRoleViewModel ToViewModel(this AccountRole role) => new AccountRoleViewModel()
     {
         name = role.Name,
-        permissions = permissions?.ToArray(),
+        permissions = role?.Claims.Where(c => c.ClaimType == SimpleBlogClaims.Permission && !string.IsNullOrEmpty(c.ClaimValue)).Select(c => c.ClaimValue!).ToArray(),
     };
 }

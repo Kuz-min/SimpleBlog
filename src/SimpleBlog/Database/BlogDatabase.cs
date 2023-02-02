@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database.Configurations;
 using SimpleBlog.Models;
 
 namespace SimpleBlog.Database;
 
-public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid>, IBlogDatabase
+public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, AccountRoleClaim, IdentityUserToken<Guid>>, IBlogDatabase
 {
     public DbSet<Post> Posts { get; set; }
     public DbSet<Profile> Profiles { get; set; }
@@ -21,6 +22,7 @@ public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid>, IBlog
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.ApplyConfiguration(new AccountRoleConfiguration());
         modelBuilder.ApplyConfiguration(new PostConfiguration());
         modelBuilder.ApplyConfiguration(new PostTagConfiguration());
         modelBuilder.ApplyConfiguration(new Post_PostTagConfiguration());
