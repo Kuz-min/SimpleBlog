@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenIddict.Abstractions;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
@@ -80,6 +81,28 @@ public class AccountController : ControllerBase
         _logger.LogInformation($"User created with id {profile.Id}");
 
         return StatusCode(StatusCodes.Status201Created);
+    }
+
+    [Authorize]
+    [HttpPut("password")]
+    public async Task<IActionResult> UpdatePasswordAsync([FromBody] PasswordUpdateRequestModel request)
+    {
+        var id = User?.Claims?.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
+
+        if (id == null)
+            return StatusCode(StatusCodes.Status500InternalServerError);
+
+        var account = await _accountManager.FindByIdAsync(id);
+
+        if (account == null)
+            return StatusCode(StatusCodes.Status500InternalServerError);
+
+        var result = await _accountManager.ChangePasswordAsync(account, request.CurrentPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+            return StatusCode(StatusCodes.Status400BadRequest);
+
+        return Ok();
     }
 
     private readonly ILogger<AccountController> _logger;
