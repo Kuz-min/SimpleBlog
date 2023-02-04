@@ -1,0 +1,38 @@
+<div class="row">
+
+  <ng-container *ngIf="(isUpdated | async)">
+    <div class="col">
+      <div class="card text-center my-2">
+        <div class="card-body">
+          <h2 class="card-title">Password updated</h2>
+          <button class="btn btn-primary" [routerLink]="['/']">Home</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!(isUpdated | async)">
+    <div class="col">
+      <form class="border rounded-2 my-2" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <h4 class="m-2">Password</h4>
+
+        <div class="form-group m-2">
+          <label class="mb-2" for="currentPassword">Current password: </label>
+          <input class="form-control" id="currentPassword" type="password" formControlName="currentPassword">
+        </div>
+
+        <div class="form-group m-2">
+          <label class="mb-2" for="newPassword">New password: </label>
+          <input class="form-control" id="newPassword" type="password" formControlName="newPassword">
+        </div>
+
+        <div class="form-row m-2">
+          <button class="btn btn-primary" type="submit" [disabled]="!form.valid">Send</button>
+        </div>
+
+      </form>
+    </div>
+  </ng-container>
+
+</div>

@@ -18,4 +18,12 @@ export class AccountService {
     );
   }
 
+  public updatePassword(data: { currentPassword: string, newPassword: string }): Observable<any> {
+    return this._http.put(this._baseUrl + 'api/accounts/password', data, { headers: { 'Authorization': '' } }).pipe(
+      first(),
+      timeout(3000),
+      shareReplay(),
+    );
+  }
+
 }
