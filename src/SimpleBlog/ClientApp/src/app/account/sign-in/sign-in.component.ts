@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, EMPTY, finalize, throwError } from 'rxjs';
 import { AuthenticationService } from 'simple-blog/core';
@@ -13,8 +13,8 @@ import { AuthenticationService } from 'simple-blog/core';
 export class SignInComponent {
 
   readonly form = new FormGroup({
-    username: new FormControl(''),
-    password: new FormControl(''),
+    username: new FormControl('', [Validators.required, Validators.pattern(/^[a-z]+[a-z0-9|\-|_]*[a-z0-9]$/i)]),
+    password: new FormControl('', [Validators.required]),
   });
 
   constructor(
@@ -28,17 +28,16 @@ export class SignInComponent {
 
     this._authService.signInAsync({ username: data.username!, password: data.password! }).pipe(
       catchError(error => {
-        if ((error as HttpErrorResponse)?.status == 400) {
-          //this.signInForm.controls.username.setErrors({ 'incorrect': true });
+        if (error instanceof HttpErrorResponse && error.status == 400) {
+          //this.form.controls.password.setErrors({ 'server': true });
           return EMPTY;
         }
-
         return throwError(error);
       }),
       finalize(() => this.form.enable()),
     ).subscribe(
       next => this._router.navigate(['/']),
-      error => console.error(error),
+      error => { },
     );
   }
 
