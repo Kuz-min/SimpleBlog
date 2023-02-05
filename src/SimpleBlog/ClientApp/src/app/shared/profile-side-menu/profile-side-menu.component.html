@@ -2,9 +2,9 @@
 
 <a class="btn w-100 my-2 btn-light" [routerLink]="['/profiles', (id | async)]" *ngIf="(isAuthenticated | async)">Profile</a>
 
-<a class="btn w-100 my-2 btn-light" [routerLink]="['/sign-in']" *ngIf="!(isAuthenticated | async)">Sign In</a>
+<a class="btn w-100 my-2 btn-light" [routerLink]="['/account/sign-in']" *ngIf="!(isAuthenticated | async)">Sign In</a>
 
-<a class="btn w-100 my-2 btn-light" [routerLink]="['/sign-up']" *ngIf="!(isAuthenticated | async)">Sign Up</a>
+<a class="btn w-100 my-2 btn-light" [routerLink]="['/account/sign-up']" *ngIf="!(isAuthenticated | async)">Sign Up</a>
 
 <a class="btn w-100 my-2 btn-light" [routerLink]="['/account/settings']" *ngIf="(isAuthenticated | async)">Settings</a>
 
