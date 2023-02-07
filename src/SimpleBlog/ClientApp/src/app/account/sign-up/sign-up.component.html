@@ -7,7 +7,7 @@
         <label class="mb-2" for="username">Username: </label>
         <input class="form-control" id="username" type="text" formControlName="username">
 
-        <ng-container *ngIf="form.controls.username.touched">
+        <ng-container *ngIf="form.controls.username.touched || form.controls.password.dirty">
           <div *ngIf="form.controls.username.errors?.['required']" class="alert alert-danger p-2 mt-2">
             Username is required.
           </div>
@@ -21,7 +21,7 @@
         <label class="mb-2" for="email">Email: </label>
         <input class="form-control" id="email" type="text" formControlName="email">
 
-        <ng-container *ngIf="form.controls.email.touched">
+        <ng-container *ngIf="form.controls.email.touched || form.controls.password.dirty">
           <div *ngIf="form.controls.email.errors?.['required']" class="alert alert-danger p-2 mt-2">
             Email is required.
           </div>
@@ -45,6 +45,20 @@
       <div class="form-row m-2">
         <button class="btn btn-primary" type="submit" [disabled]="!form.valid">Create Account</button>
       </div>
+
+      <ng-container *ngIf="(serverResponse | async) && !form.touched">
+        <div class="form-row m-2">
+          <div *ngIf="(serverResponse | async) == 400" class="alert alert-danger p-2">
+            Invalid username or email.
+          </div>
+          <div *ngIf="(serverResponse | async) == 409" class="alert alert-danger p-2">
+            Username already taken.
+          </div>
+          <div *ngIf="(serverResponse | async) == 500" class="alert alert-danger p-2">
+            Internal server error, please try again later.
+          </div>
+        </div>
+      </ng-container>
 
     </form>
 

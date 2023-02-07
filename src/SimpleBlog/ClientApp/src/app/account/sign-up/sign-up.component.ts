@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, EMPTY, finalize, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, throwError } from 'rxjs';
 import { AccountService, AuthenticationService } from 'simple-blog/core';
 
 @Component({
@@ -18,6 +18,8 @@ export class SignUpComponent {
     password: new FormControl('', [Validators.required]),
   });
 
+  readonly serverResponse = new BehaviorSubject<number>(0);
+
   constructor(
     private readonly _router: Router,
     private readonly _accountService: AccountService,
@@ -30,18 +32,16 @@ export class SignUpComponent {
 
     this._accountService.createAsync({ username: data.username!, email: data.email!, password: data.password! }).pipe(
       catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status == 400) {
-          //this.form.controls.username.setErrors({ 'pattern': true });
-          //this.form.controls.email.setErrors({ 'pattern': true });
+        if (error instanceof HttpErrorResponse) {
+          this.serverResponse.next(error.status);
           return EMPTY;
         }
         return throwError(error);
       }),
       switchMap(() => this._authService.signInAsync({ username: data.username!, password: data.password! })),
-      finalize(() => this.form.enable()),
+      finalize(() => { this.form.enable(); this.form.markAsUntouched(); }),
     ).subscribe(
       next => this._router.navigate(['/']),
-      error => { },
     );
   }
 

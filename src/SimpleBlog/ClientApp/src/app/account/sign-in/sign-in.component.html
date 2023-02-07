@@ -7,7 +7,7 @@
         <label class="mb-2" for="username">Username: </label>
         <input class="form-control" id="username" type="text" formControlName="username">
 
-        <ng-container *ngIf="form.controls.username.touched">
+        <ng-container *ngIf="form.controls.username.touched || form.controls.password.dirty">
           <div *ngIf="form.controls.username.errors?.['required']" class="alert alert-danger p-2 mt-2">
             Username is required.
           </div>
@@ -21,12 +21,9 @@
         <label class="mb-2" for="password">Password: </label>
         <input class="form-control" id="password" type="password" formControlName="password">
 
-        <ng-container *ngIf="form.controls.password.touched">
+        <ng-container *ngIf="form.controls.password.touched || form.controls.password.dirty">
           <div *ngIf="form.controls.password.errors?.['required']" class="alert alert-danger p-2 mt-2">
             Password is required.
-          </div>
-          <div *ngIf="form.controls.password.errors?.['server']" class="alert alert-danger p-2 mt-2">
-            Invalid username and password combination.
           </div>
         </ng-container>
       </div>
@@ -34,6 +31,17 @@
       <div class="form-row m-2">
         <button class="btn btn-primary" type="submit" [disabled]="!form.valid">Login</button>
       </div>
+
+      <ng-container *ngIf="(serverResponse | async) && !form.touched">
+        <div class="form-row m-2">
+          <div *ngIf="(serverResponse | async) == 400" class="alert alert-danger p-2">
+            Invalid username and password combination.
+          </div>
+          <div *ngIf="(serverResponse | async) == 500" class="alert alert-danger p-2">
+            Internal server error, please try again later.
+          </div>
+        </div>
+      </ng-container>
 
     </form>
 
