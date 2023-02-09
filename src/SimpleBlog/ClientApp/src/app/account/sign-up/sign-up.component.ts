@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, throwError } from 'rxjs';
-import { AccountService, AuthenticationService } from 'simple-blog/core';
+import { AccountService, AuthenticationService, ValidationConstants } from 'simple-blog/core';
 
 @Component({
   selector: 'account-sign-up',
@@ -13,8 +13,8 @@ import { AccountService, AuthenticationService } from 'simple-blog/core';
 export class SignUpComponent {
 
   readonly form = new FormGroup({
-    username: new FormControl('', [Validators.required, Validators.pattern(/^[a-z]+[a-z0-9|\-|_]*[a-z0-9]$/i)]),
-    email: new FormControl('', [Validators.required, Validators.pattern(/^[^@\s]+@[^@\s]+$/i)]),
+    username: new FormControl('', [Validators.required, Validators.pattern(ValidationConstants.USERNAME_REG_EX)]),
+    email: new FormControl('', [Validators.required, Validators.pattern(ValidationConstants.EMAIL_REG_EX)]),
     password: new FormControl('', [Validators.required]),
   });
 

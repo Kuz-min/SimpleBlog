@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, EMPTY, finalize, throwError } from 'rxjs';
-import { AuthenticationService } from 'simple-blog/core';
+import { AuthenticationService, ValidationConstants } from 'simple-blog/core';
 
 @Component({
   selector: 'account-sign-in',
@@ -13,7 +13,7 @@ import { AuthenticationService } from 'simple-blog/core';
 export class SignInComponent {
 
   readonly form = new FormGroup({
-    username: new FormControl('', [Validators.required, Validators.pattern(/^[a-z]+[a-z0-9|\-|_]*[a-z0-9]$/i)]),
+    username: new FormControl('', [Validators.required, Validators.pattern(ValidationConstants.USERNAME_REG_EX)]),
     password: new FormControl('', [Validators.required]),
   });
 
