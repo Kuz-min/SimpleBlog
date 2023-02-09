@@ -7,7 +7,7 @@
         <label class="mb-2" for="username">Username: </label>
         <input class="form-control" id="username" type="text" formControlName="username">
 
-        <ng-container *ngIf="form.controls.username.touched || form.controls.password.dirty">
+        <ng-container *ngIf="form.controls.username.touched || form.controls.username.dirty">
           <div *ngIf="form.controls.username.errors?.['required']" class="alert alert-danger p-2 mt-2">
             Username is required.
           </div>
