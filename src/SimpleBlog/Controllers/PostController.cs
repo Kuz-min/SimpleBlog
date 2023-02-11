@@ -11,11 +11,10 @@ namespace SimpleBlog.Controllers;
 
 [ApiController]
 [Route("api/posts")]
-public class PostController : BaseController
+public class PostController : BaseController<PostController>
 {
-    public PostController(ILogger<PostController> logger, IAuthorizationService authorizationService, IPostService postService)
+    public PostController(IAuthorizationService authorizationService, IPostService postService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         _postService = postService ?? throw new ArgumentNullException(nameof(postService));
     }
@@ -23,16 +22,7 @@ public class PostController : BaseController
     [HttpGet("{postId:int}")]
     public async Task<IActionResult> GetByIdAsync([FromRoute] int postId)
     {
-        Post? post;
-        try
-        {
-            post = await _postService.GetByIdAsync(postId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var post = await _postService.GetByIdAsync(postId);
 
         if (post == null)
             return NotFound();
@@ -45,21 +35,12 @@ public class PostController : BaseController
         [FromQuery(Name = "ids")][ModelBinder(typeof(SeparatedStringToArrayBinder))] IEnumerable<int>? ids = default
         )
     {
-        if (ids == null || ids.Count() < 1)
-            return StatusCode(StatusCodes.Status400BadRequest, "ids not set");
+        if (ids == null || ids.Count() == 0)
+            return BadRequest();
 
-        IEnumerable<Post>? posts;
-        try
-        {
-            posts = await _postService.GetByIdAsync(ids);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var posts = await _postService.GetByIdAsync(ids);
 
-        if (posts == null || posts.Count() < 1)
+        if (posts == null || posts.Count() == 0)
             return NotFound();
 
         var vm = posts.Select(p => p.ToViewModel());
@@ -70,18 +51,9 @@ public class PostController : BaseController
     [HttpGet("search")]
     public async Task<IActionResult> SearchAsync([FromQuery] PostSearchRequestModel request)
     {
-        IEnumerable<Post> posts;
-        try
-        {
-            posts = await _postService.SearchAsync(request.TagIds, request.Offset, request.Count);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var posts = await _postService.SearchAsync(request.TagIds, request.Offset, request.Count);
 
-        if (posts == null || posts.Count() < 1)
+        if (posts == null || posts.Count() == 0)
             return NotFound();
 
         var vm = posts.Select(p => p.ToViewModel());
@@ -93,76 +65,51 @@ public class PostController : BaseController
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] PostCreateRequestModel request)
     {
-        var profile = await GetProfileAsync();
-
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
+        var accountId = GetAccountId();
 
         var post = new Post()
         {
             Title = request.Title,
             Content = request.Content,
             CreatedOn = DateTime.Now,
-            OwnerId = profile.Id,
+            OwnerId = accountId,
         };
 
-        if (request.TagIds != null && request.TagIds.Count() > 0)
+        if (request.TagIds != null && request.TagIds.Count() != 0)
         {
-            post.Tags = new List<Post_PostTag>();
+            post.Tags = new HashSet<Post_PostTag>();
             foreach (var tagId in request.TagIds)
             {
                 post.Tags.Add(new Post_PostTag { PostTagId = tagId });
             }
         }
 
-        try
-        {
-            await _postService.InsertAsync(post);
+        await _postService.InsertAsync(post);
 
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        Logger.LogInformation($"Post with id {post.Id} created by user {accountId}");
 
-        _logger.LogInformation($"Post created with id {post.Id} by user {profile.Id}");
-        return StatusCode(StatusCodes.Status201Created, post.ToViewModel());
+        return Created($"api/posts/{post.Id}", post.ToViewModel());
     }
 
     [Authorize]
     [HttpPut("{postId:int}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] int postId, [FromBody] PostUpdateRequestModel request)
     {
-        var profile = await GetProfileAsync();
+        var accountId = GetAccountId();
 
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        Post? post;
-        try
-        {
-            post = await _postService.GetByIdAsync(postId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var post = await _postService.GetByIdAsync(postId);
 
         if (post == null)
-            return StatusCode(StatusCodes.Status400BadRequest);
-
+            return BadRequest();
 
         var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
         if (authorizationResult == null || !authorizationResult.Succeeded)
-            return StatusCode(StatusCodes.Status403Forbidden);
-
+            return Forbid();
 
         post.Title = request.Title;
         post.Content = request.Content;
 
-        if (request.TagIds == null)
+        if (request.TagIds == null || request.TagIds.Count() == 0)
         {
             post.Tags.Clear();
         }
@@ -177,66 +124,35 @@ public class PostController : BaseController
                     post.Tags.Add(new Post_PostTag { PostTagId = id });
         }
 
-        try
-        {
-            await _postService.UpdateAsync(post);
+        await _postService.UpdateAsync(post);
 
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        Logger.LogInformation($"Post with id {post.Id} updated by user {accountId}");
 
-        _logger.LogInformation($"Post with id {post.Id} updated by user {profile.Id}");
-        return StatusCode(StatusCodes.Status200OK, post.ToViewModel());
+        return Ok(post.ToViewModel());
     }
 
     [Authorize]
     [HttpDelete("{postId:int}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] int postId)
     {
-        var profile = await GetProfileAsync();
+        var accountId = GetAccountId();
 
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        Post? post;
-        try
-        {
-            post = await _postService.GetByIdAsync(postId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var post = await _postService.GetByIdAsync(postId);
 
         if (post == null)
-            return StatusCode(StatusCodes.Status400BadRequest);
-
+            return BadRequest();
 
         var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
         if (authorizationResult == null || !authorizationResult.Succeeded)
-            return StatusCode(StatusCodes.Status403Forbidden);
+            return Forbid();
 
+        await _postService.DeleteAsync(post);
 
-        try
-        {
-            await _postService.DeleteAsync(post);
+        Logger.LogInformation($"Post with id {post.Id} deleted by user {accountId}");
 
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
-
-        _logger.LogInformation($"Post with id {post.Id} deleted by user {profile.Id}");
-        return StatusCode(StatusCodes.Status200OK);
+        return Ok();
     }
 
-    private readonly ILogger<PostController> _logger;
     private readonly IAuthorizationService _authorizationService;
     private readonly IPostService _postService;
 }

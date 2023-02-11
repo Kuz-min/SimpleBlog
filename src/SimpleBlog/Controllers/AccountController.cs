@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using OpenIddict.Abstractions;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
@@ -10,11 +9,10 @@ namespace SimpleBlog.Controllers;
 
 [ApiController]
 [Route("api/accounts")]
-public class AccountController : ControllerBase
+public class AccountController : BaseController<AccountController>
 {
-    public AccountController(ILogger<AccountController> logger, UserManager<Account> accountManager, IProfileService profileService)
+    public AccountController(UserManager<Account> accountManager, IProfileService profileService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
     }
@@ -23,19 +21,10 @@ public class AccountController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] AccountCreateRequestModel request)
     {
-        Account? account;
-        try
-        {
-            account = await _accountManager.FindByNameAsync(request.Username);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var account = await _accountManager.FindByNameAsync(request.Username);
 
         if (account != null)
-            return StatusCode(StatusCodes.Status409Conflict);
+            return Conflict();
 
         account = new Account
         {
@@ -43,42 +32,24 @@ public class AccountController : ControllerBase
             Email = request.Email,
         };
 
-        IdentityResult? result;
-        try
-        {
-            result = await _accountManager.CreateAsync(account, request.Password);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var result = await _accountManager.CreateAsync(account, request.Password);
 
         if (!result.Succeeded)
             return StatusCode(StatusCodes.Status500InternalServerError);
 
-        _logger.LogInformation($"Account created with id {account.Id}");
+        Logger.LogInformation($"Account with id {account.Id} created");
 
-        Profile? profile;
-        try
+        var profile = await _profileService.InsertAsync(new Profile()
         {
-            profile = await _profileService.InsertAsync(new Profile()
-            {
-                Id = account.Id,
-                Name = request.Username,
-                CreatedOn = DateTime.Now,
-            });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+            Id = account.Id,
+            Name = request.Username,
+            CreatedOn = DateTime.Now,
+        });
 
         if (profile == null)
             return StatusCode(StatusCodes.Status500InternalServerError);
 
-        _logger.LogInformation($"User created with id {profile.Id}");
+        Logger.LogInformation($"Profile with id {profile.Id} created");
 
         return StatusCode(StatusCodes.Status201Created);
     }
@@ -87,12 +58,9 @@ public class AccountController : ControllerBase
     [HttpPut("password")]
     public async Task<IActionResult> UpdatePasswordAsync([FromBody] PasswordUpdateRequestModel request)
     {
-        var id = User?.Claims?.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
+        var id = GetAccountId();
 
-        if (id == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        var account = await _accountManager.FindByIdAsync(id);
+        var account = await _accountManager.FindByIdAsync(id.ToString());
 
         if (account == null)
             return StatusCode(StatusCodes.Status500InternalServerError);
@@ -100,12 +68,11 @@ public class AccountController : ControllerBase
         var result = await _accountManager.ChangePasswordAsync(account, request.CurrentPassword, request.NewPassword);
 
         if (!result.Succeeded)
-            return StatusCode(StatusCodes.Status400BadRequest);
+            return BadRequest();
 
         return Ok();
     }
 
-    private readonly ILogger<AccountController> _logger;
     private readonly UserManager<Account> _accountManager;
     private readonly IProfileService _profileService;
 }

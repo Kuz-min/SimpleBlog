@@ -99,14 +99,8 @@ public class Program
 
         if (!app.Environment.IsDevelopment())
         {
-            //Unhandled Exceptions
-            app.UseExceptionHandler((app) => app.Run(async context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await context.Response.WriteAsync("Internal Server Error");
-            }));
-            //HTTPS 
-            app.UseHsts();
+            app.UseExceptionHandler("/error");
+            app.UseHsts();//HTTPS 
         }
 
         app.UseHttpsRedirection();

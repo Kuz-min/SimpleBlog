@@ -14,13 +14,8 @@ namespace SimpleBlog.Controllers;
 [Route("auth")]
 public class AuthenticationController : ControllerBase
 {
-    public AuthenticationController(
-        ILogger<AuthenticationController> logger,
-        UserManager<Account> accountManager,
-        SignInManager<Account> signInManager
-        )
+    public AuthenticationController(UserManager<Account> accountManager, SignInManager<Account> signInManager)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     }
@@ -128,7 +123,6 @@ public class AuthenticationController : ControllerBase
         return principal;
     }
 
-    private readonly ILogger<AuthenticationController> _logger;
     private readonly UserManager<Account> _accountManager;
     private readonly SignInManager<Account> _signInManager;
 }

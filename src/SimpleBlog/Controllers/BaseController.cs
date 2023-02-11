@@ -1,37 +1,36 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
-using SimpleBlog.Models;
-using SimpleBlog.Services;
 
 namespace SimpleBlog.Controllers;
 
-public class BaseController : ControllerBase
+public abstract class BaseController<T> : ControllerBase
 {
-    private IProfileService? ProfileService
+    protected ILogger<T> Logger
     {
         get
         {
-            if (_profileService == null)
-                _profileService = HttpContext?.RequestServices?.GetRequiredService<IProfileService>();
+            if (_logger == null)
+                _logger = HttpContext.RequestServices.GetRequiredService<ILogger<T>>();
 
-            return _profileService;
+            return _logger;
         }
     }
 
-    protected async Task<Profile?> GetProfileAsync()
+    protected Guid GetAccountId()
     {
-        var rawAccountId = User?.Claims?.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
+        if (_accountId == Guid.Empty)
+        {
+            var rawAccountId = User.Claims.SingleOrDefault(c => c.Type == OpenIddictConstants.Claims.Subject)?.Value;
 
-        if (string.IsNullOrWhiteSpace(rawAccountId))
-            return null;
+            if (string.IsNullOrWhiteSpace(rawAccountId))
+                throw new Exception("User is not authenticated");
 
-        if (ProfileService == null)
-            return null;
+            _accountId = Guid.Parse(rawAccountId);
+        }
 
-        var accountId = Guid.Parse(rawAccountId);
-
-        return await ProfileService.GetByIdAsync(accountId);
+        return _accountId;
     }
 
-    private IProfileService? _profileService;
+    private ILogger<T>? _logger = null;
+    private Guid _accountId = Guid.Empty;
 }

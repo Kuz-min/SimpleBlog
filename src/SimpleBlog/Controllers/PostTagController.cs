@@ -10,27 +10,17 @@ namespace SimpleBlog.Controllers;
 
 [ApiController]
 [Route("api/post-tags")]
-public class PostTagController : BaseController
+public class PostTagController : BaseController<PostTagController>
 {
-    public PostTagController(ILogger<PostTagController> logger, IPostTagService postTagService)
+    public PostTagController(IPostTagService postTagService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _postTagService = postTagService ?? throw new ArgumentNullException(nameof(postTagService));
     }
 
     [HttpGet("{tagId:int}")]
     public async Task<IActionResult> GetByIdAsync([FromRoute] int tagId)
     {
-        PostTag? tag;
-        try
-        {
-            tag = await _postTagService.GetByIdAsync(tagId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var tag = await _postTagService.GetByIdAsync(tagId);
 
         if (tag == null)
             return NotFound();
@@ -41,18 +31,9 @@ public class PostTagController : BaseController
     [HttpGet]
     public async Task<IActionResult> GetAllAsync()
     {
-        IEnumerable<PostTag> tags;
-        try
-        {
-            tags = await _postTagService.GetAllAsync();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var tags = await _postTagService.GetAllAsync();
 
-        if (tags == null || tags.Count() < 1)
+        if (tags == null || tags.Count() == 0)
             return NotFound();
 
         var vm = tags.Select(p => p.ToViewModel());
@@ -65,27 +46,16 @@ public class PostTagController : BaseController
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] PostTagCreateRequestModel request)
     {
-        var profile = await GetProfileAsync();
+        var accountId = GetAccountId();
 
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        PostTag? tag;
-        try
+        var tag = await _postTagService.InsertAsync(new PostTag()
         {
-            tag = await _postTagService.InsertAsync(new PostTag()
-            {
-                Title = request.Title,
-            });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+            Title = request.Title,
+        });
 
-        _logger.LogInformation($"PostTag created with id {tag.Id} by user {profile.Id}");
-        return StatusCode(StatusCodes.Status201Created, tag.ToViewModel());
+        Logger.LogInformation($"PostTag with id {tag.Id} created by user {accountId}");
+
+        return Created($"api/post-tags/{tag.Id}", tag.ToViewModel());
     }
 
     [Authorize]
@@ -93,40 +63,20 @@ public class PostTagController : BaseController
     [HttpPut("{tagId:int}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] int tagId, [FromBody] PostTagUpdateRequestModel request)
     {
-        var profile = await GetProfileAsync();
+        var accountId = GetAccountId();
 
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        PostTag? tag;
-        try
-        {
-            tag = await _postTagService.GetByIdAsync(tagId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var tag = await _postTagService.GetByIdAsync(tagId);
 
         if (tag == null)
-            return StatusCode(StatusCodes.Status400BadRequest);
+            return BadRequest();
 
         tag.Title = request.Title;
 
-        try
-        {
-            await _postTagService.UpdateAsync(tag);
+        await _postTagService.UpdateAsync(tag);
 
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        Logger.LogInformation($"PostTag with id {tag.Id} updated by user {accountId}");
 
-        _logger.LogInformation($"PostTag with id {tag.Id} updated by user {profile.Id}");
-        return StatusCode(StatusCodes.Status200OK, tag.ToViewModel());
+        return Ok(tag.ToViewModel());
     }
 
     [Authorize]
@@ -134,40 +84,19 @@ public class PostTagController : BaseController
     [HttpDelete("{tagId:int}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] int tagId)
     {
-        var profile = await GetProfileAsync();
+        var accountId = GetAccountId();
 
-        if (profile == null)
-            return StatusCode(StatusCodes.Status500InternalServerError);
-
-        PostTag? tag;
-        try
-        {
-            tag = await _postTagService.GetByIdAsync(tagId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        var tag = await _postTagService.GetByIdAsync(tagId);
 
         if (tag == null)
-            return StatusCode(StatusCodes.Status400BadRequest);
+            return BadRequest();
 
-        try
-        {
-            await _postTagService.DeleteAsync(tag);
+        await _postTagService.DeleteAsync(tag);
 
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
+        Logger.LogInformation($"PostTag with id {tag.Id} deleted by user {accountId}");
 
-        _logger.LogInformation($"PostTag with id {tag.Id} deleted by user {profile.Id}");
-        return StatusCode(StatusCodes.Status200OK);
+        return Ok();
     }
 
-    private readonly ILogger<PostTagController> _logger;
     private readonly IPostTagService _postTagService;
 }
