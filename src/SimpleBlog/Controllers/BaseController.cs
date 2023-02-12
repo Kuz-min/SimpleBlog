@@ -1,20 +1,34 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MapsterMapper;
+using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 
 namespace SimpleBlog.Controllers;
 
-public abstract class BaseController<T> : ControllerBase
+public abstract class BaseController<TController> : ControllerBase
 {
-    protected ILogger<T> Logger
+    protected ILogger<TController> Logger
     {
         get
         {
             if (_logger == null)
-                _logger = HttpContext.RequestServices.GetRequiredService<ILogger<T>>();
+                _logger = HttpContext.RequestServices.GetRequiredService<ILogger<TController>>();
 
             return _logger;
         }
     }
+
+    protected IMapper Mapper
+    {
+        get
+        {
+            if (_mapper == null)
+                _mapper = HttpContext.RequestServices.GetRequiredService<IMapper>();
+
+            return _mapper;
+        }
+    }
+
+    protected T Map<T>(object o) => Mapper.Map<T>(o);
 
     protected Guid GetAccountId()
     {
@@ -31,6 +45,7 @@ public abstract class BaseController<T> : ControllerBase
         return _accountId;
     }
 
-    private ILogger<T>? _logger = null;
+    private ILogger<TController>? _logger = null;
+    private IMapper? _mapper = null;
     private Guid _accountId = Guid.Empty;
 }

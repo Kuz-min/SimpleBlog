@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Services;
-using SimpleBlog.ViewModels.ModelExtensions;
+using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
@@ -21,7 +21,7 @@ public class ProfileController : BaseController<ProfileController>
         if (profile == null)
             return NotFound();
 
-        return Ok(profile.ToViewModel());
+        return Ok(Map<ProfileViewModel>(profile));
     }
 
     private readonly IProfileService _profileService;

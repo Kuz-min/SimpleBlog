@@ -4,7 +4,7 @@ using SimpleBlog.Authorization;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
-using SimpleBlog.ViewModels.ModelExtensions;
+using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
@@ -25,7 +25,7 @@ public class PostTagController : BaseController<PostTagController>
         if (tag == null)
             return NotFound();
 
-        return Ok(tag.ToViewModel());
+        return Ok(Map<PostTagViewModel>(tag));
     }
 
     [HttpGet]
@@ -36,7 +36,7 @@ public class PostTagController : BaseController<PostTagController>
         if (tags == null || tags.Count() == 0)
             return NotFound();
 
-        var vm = tags.Select(p => p.ToViewModel());
+        var vm = tags.Select(Map<PostTagViewModel>);
 
         return Ok(vm);
     }
@@ -55,7 +55,7 @@ public class PostTagController : BaseController<PostTagController>
 
         Logger.LogInformation($"PostTag with id {tag.Id} created by user {accountId}");
 
-        return Created($"api/post-tags/{tag.Id}", tag.ToViewModel());
+        return Created($"api/post-tags/{tag.Id}", Map<PostTagViewModel>(tag));
     }
 
     [Authorize]
@@ -76,7 +76,7 @@ public class PostTagController : BaseController<PostTagController>
 
         Logger.LogInformation($"PostTag with id {tag.Id} updated by user {accountId}");
 
-        return Ok(tag.ToViewModel());
+        return Ok(Map<PostTagViewModel>(tag));
     }
 
     [Authorize]

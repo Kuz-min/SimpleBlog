@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Services;
-using SimpleBlog.ViewModels.ModelExtensions;
+using SimpleBlog.ViewModels;
 using System.Data;
 
 namespace SimpleBlog.Controllers;
@@ -22,7 +22,7 @@ public class AccountRoleController : BaseController<AccountRoleController>
         if (role == null)
             return NotFound();
 
-        return Ok(role.ToViewModel());
+        return Ok(Map<AccountRoleViewModel>(role));
     }
 
     [HttpGet]
@@ -33,7 +33,7 @@ public class AccountRoleController : BaseController<AccountRoleController>
         if (roles == null || roles.Count() == 0)
             return NotFound();
 
-        var vm = roles.Select(r => r.ToViewModel());
+        var vm = roles.Select(Map<AccountRoleViewModel>);
 
         return Ok(vm);
     }

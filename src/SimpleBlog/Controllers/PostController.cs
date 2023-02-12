@@ -5,7 +5,7 @@ using SimpleBlog.ModelBinders;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
-using SimpleBlog.ViewModels.ModelExtensions;
+using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
@@ -27,7 +27,7 @@ public class PostController : BaseController<PostController>
         if (post == null)
             return NotFound();
 
-        return Ok(post.ToViewModel());
+        return Ok(Map<PostViewModel>(post));
     }
 
     [HttpGet]
@@ -43,7 +43,7 @@ public class PostController : BaseController<PostController>
         if (posts == null || posts.Count() == 0)
             return NotFound();
 
-        var vm = posts.Select(p => p.ToViewModel());
+        var vm = posts.Select(Map<PostViewModel>);
 
         return Ok(vm);
     }
@@ -56,7 +56,7 @@ public class PostController : BaseController<PostController>
         if (posts == null || posts.Count() == 0)
             return NotFound();
 
-        var vm = posts.Select(p => p.ToViewModel());
+        var vm = posts.Select(Map<PostViewModel>);
 
         return Ok(vm);
     }
@@ -88,7 +88,7 @@ public class PostController : BaseController<PostController>
 
         Logger.LogInformation($"Post with id {post.Id} created by user {accountId}");
 
-        return Created($"api/posts/{post.Id}", post.ToViewModel());
+        return Created($"api/posts/{post.Id}", Map<PostViewModel>(post));
     }
 
     [Authorize]
@@ -128,7 +128,7 @@ public class PostController : BaseController<PostController>
 
         Logger.LogInformation($"Post with id {post.Id} updated by user {accountId}");
 
-        return Ok(post.ToViewModel());
+        return Ok(Map<PostViewModel>(post));
     }
 
     [Authorize]

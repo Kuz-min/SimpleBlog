@@ -1,3 +1,5 @@
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
@@ -7,6 +9,8 @@ using SimpleBlog.Database;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
 using SimpleBlog.StartupTasks;
+using SimpleBlog.ViewModels;
+using System.Data;
 
 namespace SimpleBlog;
 
@@ -15,6 +19,17 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        //Mapper
+        builder.Services.AddSingleton((_) =>
+        {
+            var config = new TypeAdapterConfig();
+            config.Default.NameMatchingStrategy(NameMatchingStrategy.IgnoreCase);
+            config.NewConfig<Post, PostViewModel>().Map(m => m.tagIds, s => s.Tags.Select(t => t.PostTagId));
+            config.NewConfig<AccountRole, AccountRoleViewModel>().Map(m => m.permissions, s => s.Claims.Where(c => c.ClaimType == SimpleBlogClaims.Permission && !string.IsNullOrEmpty(c.ClaimValue)).Select(c => c.ClaimValue!));
+            return config;
+        });
+        builder.Services.AddScoped<IMapper, ServiceMapper>();
 
         //Database configuration
         builder.Services.AddDbContext<BlogDatabase>(options =>
