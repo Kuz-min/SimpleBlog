@@ -14,5 +14,6 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
 
         builder.Property(p => p.Name).IsRequired();
         builder.Property(p => p.CreatedOn).IsRequired();
+        builder.Property(p => p.Image).IsRequired(false);
     }
 }
