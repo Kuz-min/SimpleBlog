@@ -1,2 +1,11 @@
-<h1>{{(profile | async)?.name}}</h1>
-<p>{{(profile | async)?.createdOn | date:'H:mm d MMMM YY' }}</p>
+<div class="row g-0 border rounded my-2">
+  <div class="col-sm-12 col-md-3 col-lg-2">
+    <img [src]="(profile | async)?.image ?? '/images/profiles/default.png'" class="w-100 rounded">
+  </div>
+  <div class="col-sm-12 col-md-9 col-lg-10 p-3">
+    <h2 class="text-nowrap overflow-hidden">{{(profile | async)?.name}}</h2>
+    <p class="text-nowrap overflow-hidden">
+      <small class="text-muted">Joined: {{(profile | async)?.createdOn | date:'d MMMM YYYY' }}</small>
+    </p>
+  </div>
+</div>

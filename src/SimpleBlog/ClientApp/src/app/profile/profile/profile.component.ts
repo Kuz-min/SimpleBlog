@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, filter, map, mergeMap, Observable, of, throwError } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { Profile, ProfileService } from 'simple-blog/core';
 
 @Component({
@@ -22,7 +22,7 @@ export class ProfileComponent implements OnInit {
     this.profile = this._route.params.pipe(
       filter(params => params['id']),
       map(params => params['id']),
-      mergeMap(id => this._profileService.getByIdAsync(id).pipe(
+      switchMap(id => this._profileService.getByIdAsync(id).pipe(
         catchError(error => (error as HttpErrorResponse)?.status == 404 ? of(null) : throwError(error)),
       )),
     );
