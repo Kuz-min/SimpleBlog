@@ -97,6 +97,7 @@ public class Program
             options.AddPolicy(Policies.PostTagFullAccess, policy => policy.Requirements.Add(new PostTagFullAccessRequirement()));
         });
 
+        builder.Services.AddSingleton<IAuthorizationHandler, ProfileSameOwnerAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationHandler, PostSameOwnerAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationHandler, PostTagFullAccessAuthorizationHandler>();
 
