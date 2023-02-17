@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using SimpleBlog.Configuration;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
@@ -16,18 +17,9 @@ public class DefaultAccountsSetup
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var configs = _serviceProvider.GetRequiredService<IOptions<List<DefaultAccountConfiguration>>>()?.Value;
 
-        var configs = new List<DefaultAccountConfiguration>();
-
-        foreach (var rawConfig in configuration.GetSection(DefaultAccountConfiguration.SectionName).GetChildren())
-        {
-            var config = new DefaultAccountConfiguration();
-            rawConfig.Bind(config, options => options.BindNonPublicProperties = true);
-            configs.Add(config);
-        }
-
-        if (configs.Count == 0)
+        if (configs == null || configs.Count == 0)
             return;
 
         if (!configs.All(config => config.IsValid()))

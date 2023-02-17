@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using SimpleBlog.Authorization;
 using SimpleBlog.Configuration;
 using SimpleBlog.Models;
@@ -17,18 +18,9 @@ public class DefaultRolesSetup
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var configs = _serviceProvider.GetRequiredService<IOptions<List<DefaultRoleConfiguration>>>()?.Value;
 
-        var configs = new List<DefaultRoleConfiguration>();
-
-        foreach (var rawConfig in configuration.GetSection(DefaultRoleConfiguration.SectionName).GetChildren())
-        {
-            var config = new DefaultRoleConfiguration();
-            rawConfig.Bind(config, options => options.BindNonPublicProperties = true);
-            configs.Add(config);
-        }
-
-        if (configs.Count == 0)
+        if (configs == null || configs.Count == 0)
             return;
 
         if (!configs.All(config => config.IsValid()))

@@ -1,4 +1,5 @@
-﻿using OpenIddict.Abstractions;
+﻿using Microsoft.Extensions.Options;
+using OpenIddict.Abstractions;
 using SimpleBlog.Configuration;
 
 namespace SimpleBlog.StartupTasks;
@@ -14,18 +15,9 @@ public class DefaultClientApplicationsSetup
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var configs = _serviceProvider.GetRequiredService<IOptions<List<DefaultClientAppConfiguration>>>()?.Value;
 
-        var configs = new List<DefaultClientAppConfiguration>();
-
-        foreach (var rawConfig in configuration.GetSection(DefaultClientAppConfiguration.SectionName).GetChildren())
-        {
-            var config = new DefaultClientAppConfiguration();
-            rawConfig.Bind(config, options => options.BindNonPublicProperties = true);
-            configs.Add(config);
-        }
-
-        if (configs.Count == 0)
+        if (configs == null || configs.Count == 0)
             return;
 
         if (!configs.All(config => config.IsValid()))

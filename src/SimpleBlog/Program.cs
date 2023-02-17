@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using SimpleBlog.Authorization;
+using SimpleBlog.Configuration;
 using SimpleBlog.Database;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
@@ -19,6 +20,11 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        //Configuration
+        builder.Services.Configure<List<DefaultAccountConfiguration>>(builder.Configuration.GetSection(DefaultAccountConfiguration.SectionName));
+        builder.Services.Configure<List<DefaultClientAppConfiguration>>(builder.Configuration.GetSection(DefaultClientAppConfiguration.SectionName));
+        builder.Services.Configure<List<DefaultRoleConfiguration>>(builder.Configuration.GetSection(DefaultRoleConfiguration.SectionName));
 
         //Mapper
         builder.Services.AddSingleton((_) =>

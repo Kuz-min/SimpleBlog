@@ -4,10 +4,10 @@ public class DefaultAccountConfiguration
 {
     public static string SectionName = "DefaultAccounts";
 
-    public string Name { get; private set; } = string.Empty;
-    public string Password { get; private set; } = string.Empty;
-    public string Email { get; private set; } = string.Empty;
-    public string Roles { get; private set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Roles { get; set; } = string.Empty;
 
     public bool IsValid()
     {

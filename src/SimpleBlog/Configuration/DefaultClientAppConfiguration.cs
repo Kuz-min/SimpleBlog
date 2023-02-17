@@ -4,10 +4,10 @@ public class DefaultClientAppConfiguration
 {
     public static string SectionName = "DefaultClientApplications";
 
-    public string Id { get; private set; } = string.Empty;
-    public string Secret { get; private set; } = string.Empty;
-    public string Name { get; private set; } = string.Empty;
-    public string Permissions { get; private set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public string Secret { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Permissions { get; set; } = string.Empty;
 
     public bool IsValid()
     {
