@@ -1,0 +1,35 @@
+<div class="row my-2">
+
+
+  <div class="col-sm-12 col-md-6">
+    <div class="row g-0 border rounded my-2">
+
+      <ng-container *ngIf="(isImageUpdated | async)">
+        <div class="col">
+          <div class="card text-center">
+            <div class="card-body">
+              <h2 class="card-title">Image updated</h2>
+              <button class="btn btn-primary" [routerLink]="['/profiles', (profile | async)?.id]">Profile</button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!(isImageUpdated | async)">
+        <div class="col-6">
+          <img [src]="(imagePath | async) ?? (profile | async)?.image" class="w-100 rounded">
+        </div>
+        <div class="col p-3">
+          <form [formGroup]="imageForm" (ngSubmit)="updateImage()" enctype="multipart/form-data">
+            <input #file class="d-none" formControlName="file" type="file" accept="image/*" (change)="imagePreview($event)" />
+            <button class="btn btn-primary w-100 my-2" type="button" (click)="file.click()">Select</button>
+            <button class="btn btn-primary w-100 my-2" type="submit" [disabled]="!imageForm.valid">Save</button>
+          </form>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+
+
+</div>
