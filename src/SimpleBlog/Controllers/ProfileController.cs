@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Authorization;
+using SimpleBlog.FileStorage;
 using SimpleBlog.Services;
 using SimpleBlog.ViewModels;
 
@@ -10,9 +11,10 @@ namespace SimpleBlog.Controllers;
 [Route("api/profiles")]
 public class ProfileController : BaseController<ProfileController>
 {
-    public ProfileController(IProfileService profileService)
+    public ProfileController(IPublicFileStorage fileStorage, IProfileService profileService)
     {
         _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
+        _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
     }
 
     [HttpGet("{profileId:guid}")]
@@ -33,7 +35,7 @@ public class ProfileController : BaseController<ProfileController>
     [RequestSizeLimit(524_288)]//512 kib
     public async Task<IActionResult> UpdateImageAsync([FromRoute] Guid profileId, [FromForm] IFormFile file)
     {
-        var (contentType, contentSubType) = file.ContentType.Split('/') is [var a, var b] ? (a, b) : throw new Exception("invalid content type");
+        var (contentType, contentSubType) = file.ContentType.Split('/') is [var a, var b] ? (a, b) : (null, null);
 
         if (file.Length == 0 || contentType != "image")
             return BadRequest();
@@ -44,16 +46,15 @@ public class ProfileController : BaseController<ProfileController>
             return BadRequest();
 
         var name = $"{profileId}.{contentSubType}";
-        var path = Path.Combine("wwwroot/images/profiles/", name);
+        using var stream = file.OpenReadStream();
+        var uri = await _fileStorage.CreateOrUpdateFileAsync(FileType.ProfileImage, name, stream);
 
-        using var stream = System.IO.File.Create(path);
-        await file.CopyToAsync(stream);
-
-        profile.Image = new Uri($"{Request.Scheme}://{Request.Host}/images/profiles/{name}?t={DateTime.Now.ToString("HHmmss")}");
+        profile.Image = uri;
         await _profileService.UpdateAsync(profile);
 
         return Ok(Map<ProfileViewModel>(profile));
     }
 
+    private readonly IPublicFileStorage _fileStorage;
     private readonly IProfileService _profileService;
 }

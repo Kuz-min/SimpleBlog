@@ -7,6 +7,7 @@ using OpenIddict.Validation.AspNetCore;
 using SimpleBlog.Authorization;
 using SimpleBlog.Configuration;
 using SimpleBlog.Database;
+using SimpleBlog.FileStorage;
 using SimpleBlog.Models;
 using SimpleBlog.Services;
 using SimpleBlog.StartupTasks;
@@ -25,6 +26,7 @@ public class Program
         builder.Services.Configure<List<DefaultAccountConfiguration>>(builder.Configuration.GetSection(DefaultAccountConfiguration.SectionName));
         builder.Services.Configure<List<DefaultClientAppConfiguration>>(builder.Configuration.GetSection(DefaultClientAppConfiguration.SectionName));
         builder.Services.Configure<List<DefaultRoleConfiguration>>(builder.Configuration.GetSection(DefaultRoleConfiguration.SectionName));
+        builder.Services.Configure<PublicFileStorageConfiguration>(builder.Configuration.GetSection(PublicFileStorageConfiguration.SectionName));
 
         //Mapper
         builder.Services.AddSingleton((_) =>
@@ -36,6 +38,9 @@ public class Program
             return config;
         });
         builder.Services.AddScoped<IMapper, ServiceMapper>();
+
+        //FileStorage
+        builder.Services.AddSingleton<IPublicFileStorage, PublicFileStorage>();
 
         //Database configuration
         builder.Services.AddDbContext<BlogDatabase>(options =>
