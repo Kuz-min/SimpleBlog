@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database;
 using SimpleBlog.Database.Configurations;
@@ -21,6 +21,9 @@ public class PostService : IPostService
 
     public async Task<IEnumerable<Post>> GetByIdAsync(IEnumerable<int> ids)
     {
+        if (ids == null)
+            throw new ArgumentNullException(nameof(ids));
+
         return await _database.Posts.Include(p => p.Tags).Where(p => ids.Contains(p.Id)).ToListAsync();
     }
 
@@ -49,7 +52,6 @@ public class PostService : IPostService
             request = _database.Posts.AsQueryable();
         }
 
-        //request = request.Include(p => p.Owner);
         request = request.Include(p => p.Tags);
 
         request = request.OrderBy(q => q.CreatedOn);

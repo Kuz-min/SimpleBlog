@@ -1,14 +1,17 @@
-﻿namespace SimpleBlog.Configuration;
+using System.Diagnostics.CodeAnalysis;
+
+namespace SimpleBlog.Configuration;
 
 public class DefaultRoleConfiguration
 {
-    public static string SectionName = "DefaultRoles";
+    public const string SectionName = "DefaultRoles";
 
-    public string Name { get; set; } = string.Empty;
-    public string Permissions { get; set; } = string.Empty;
+    public string? Name { get; set; }
+    public string? Permissions { get; set; }
 
+    [MemberNotNullWhen(true, new[] { nameof(Name), nameof(Permissions) })]
     public bool IsValid()
     {
-        return (!string.IsNullOrEmpty(Name));
+        return (!string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Name));
     }
 }

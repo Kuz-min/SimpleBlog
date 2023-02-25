@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Models;
@@ -7,9 +7,8 @@ using SimpleBlog.Services;
 
 namespace SimpleBlog.Controllers;
 
-[ApiController]
 [Route("api/accounts")]
-public class AccountController : BaseController<AccountController>
+public class AccountController : BaseApiController<AccountController>
 {
     public AccountController(UserManager<Account> accountManager, IProfileService profileService)
     {

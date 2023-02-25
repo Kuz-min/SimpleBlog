@@ -6,6 +6,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using SimpleBlog.Authorization;
 using SimpleBlog.Configuration;
+using SimpleBlog.Constants;
 using SimpleBlog.Database;
 using SimpleBlog.FileStorage;
 using SimpleBlog.Models;
@@ -34,7 +35,7 @@ public class Program
             var config = new TypeAdapterConfig();
             config.Default.NameMatchingStrategy(NameMatchingStrategy.IgnoreCase);
             config.NewConfig<Post, PostViewModel>().Map(m => m.tagIds, s => s.Tags.Select(t => t.PostTagId));
-            config.NewConfig<AccountRole, AccountRoleViewModel>().Map(m => m.permissions, s => s.Claims.Where(c => c.ClaimType == SimpleBlogClaims.Permission && !string.IsNullOrEmpty(c.ClaimValue)).Select(c => c.ClaimValue!));
+            config.NewConfig<AccountRole, AccountRoleViewModel>().Map(m => m.permissions, s => s.Claims.Where(c => c.ClaimType == Claims.Permission && !string.IsNullOrEmpty(c.ClaimValue)).Select(c => c.ClaimValue!));
             return config;
         });
         builder.Services.AddScoped<IMapper, ServiceMapper>();
@@ -104,12 +105,12 @@ public class Program
                 .RequireAuthenticatedUser()
                 .Build();
 
-            options.AddPolicy(Policies.SameOwner, policy => policy.Requirements.Add(new SameOwnerRequirement()));
+            options.AddPolicy(Policies.OwnerAccess, policy => policy.Requirements.Add(new OwnerAccessRequirement()));
             options.AddPolicy(Policies.PostTagFullAccess, policy => policy.Requirements.Add(new PostTagFullAccessRequirement()));
         });
 
-        builder.Services.AddSingleton<IAuthorizationHandler, ProfileSameOwnerAuthorizationHandler>();
-        builder.Services.AddSingleton<IAuthorizationHandler, PostSameOwnerAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, ProfileOwnerAccessAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, PostOwnerAccessAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationHandler, PostTagFullAccessAuthorizationHandler>();
 
         //MyServices

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using SimpleBlog.Configuration;
 using SimpleBlog.Models;
@@ -22,17 +22,17 @@ public class DefaultAccountsSetup
         if (configs == null || configs.Count == 0)
             return;
 
-        if (!configs.All(config => config.IsValid()))
-            throw new InvalidOperationException("Default Account Configuration is not valid");
-
         var accountManager = scope.ServiceProvider.GetRequiredService<UserManager<Account>>();
         var profileService = scope.ServiceProvider.GetRequiredService<IProfileService>();
 
         foreach (var config in configs)
         {
+            if (!config.IsValid())
+                continue;
+
             var account = await accountManager.FindByNameAsync(config.Name);
 
-            if (account is null)
+            if (account == null)
             {
                 account = new Account()
                 {
@@ -42,9 +42,12 @@ public class DefaultAccountsSetup
 
                 await accountManager.CreateAsync(account, config.Password);
 
-                foreach (var role in config.Roles.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                if (!string.IsNullOrEmpty(config.Roles))
                 {
-                    await accountManager.AddToRoleAsync(account, role);
+                    foreach (var role in config.Roles.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        await accountManager.AddToRoleAsync(account, role);
+                    }
                 }
 
                 var profile = new Profile()

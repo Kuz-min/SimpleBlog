@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using OpenIddict.Abstractions;
+using SimpleBlog.Constants;
 using SimpleBlog.Services;
 
 namespace SimpleBlog.Authorization;
@@ -17,9 +18,9 @@ public class PostTagFullAccessAuthorizationHandler : AuthorizationHandler<PostTa
 
         var accountRoleService = scope.ServiceProvider.GetRequiredService<IAccountRoleService>();
 
-        var userRoles = context.User?.Claims?.Where(c => c.Type == OpenIddictConstants.Claims.Role).Select(c => c.Value);
+        var userRoles = context.User.Claims.Where(c => c.Type == OpenIddictConstants.Claims.Role).Select(c => c.Value);
 
-        if (userRoles == null || userRoles.Count() < 1)
+        if (userRoles == null || userRoles.Count() == 0)
             return;
 
         foreach (var roleName in userRoles)
@@ -29,7 +30,7 @@ public class PostTagFullAccessAuthorizationHandler : AuthorizationHandler<PostTa
             if (role == null)
                 continue;
 
-            if (role.Claims.Any(claim => claim.ClaimType == SimpleBlogClaims.Permission && claim.ClaimValue == Policies.PostTagFullAccess))
+            if (role.Claims.Any(claim => claim.ClaimType == Claims.Permission && claim.ClaimValue == Policies.PostTagFullAccess))
                 context.Succeed(requirement);
         }
     }

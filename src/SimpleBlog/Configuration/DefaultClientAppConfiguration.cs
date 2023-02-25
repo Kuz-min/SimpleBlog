@@ -1,14 +1,17 @@
-﻿namespace SimpleBlog.Configuration;
+using System.Diagnostics.CodeAnalysis;
+
+namespace SimpleBlog.Configuration;
 
 public class DefaultClientAppConfiguration
 {
-    public static string SectionName = "DefaultClientApplications";
+    public const string SectionName = "DefaultClientApplications";
 
-    public string Id { get; set; } = string.Empty;
-    public string Secret { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Permissions { get; set; } = string.Empty;
+    public string? Id { get; set; }
+    public string? Secret { get; set; } 
+    public string? Name { get; set; }
+    public string? Permissions { get; set; }
 
+    [MemberNotNullWhen(true, new[] { nameof(Id), nameof(Secret), nameof(Name), nameof(Permissions) })]
     public bool IsValid()
     {
         return (!string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(Secret) && !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Permissions));

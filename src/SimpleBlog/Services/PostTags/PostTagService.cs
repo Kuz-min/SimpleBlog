@@ -1,4 +1,3 @@
-﻿using Azure;
 using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database;
 using SimpleBlog.Models;

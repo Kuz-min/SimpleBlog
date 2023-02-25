@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimpleBlog.Authorization;
+using SimpleBlog.Constants;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
@@ -8,15 +8,15 @@ using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
-[ApiController]
 [Route("api/post-tags")]
-public class PostTagController : BaseController<PostTagController>
+public class PostTagController : BaseApiController<PostTagController>
 {
     public PostTagController(IPostTagService postTagService)
     {
         _postTagService = postTagService ?? throw new ArgumentNullException(nameof(postTagService));
     }
 
+    [AllowAnonymous]
     [HttpGet("{tagId:int}")]
     public async Task<IActionResult> GetByIdAsync([FromRoute] int tagId)
     {
@@ -28,6 +28,7 @@ public class PostTagController : BaseController<PostTagController>
         return Ok(Map<PostTagViewModel>(tag));
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllAsync()
     {

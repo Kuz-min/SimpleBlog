@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimpleBlog.RequestModels;
@@ -6,8 +6,8 @@ namespace SimpleBlog.RequestModels;
 [BindProperties]
 public class PasswordUpdateRequestModel : IValidatableObject
 {
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
+    public string CurrentPassword { get; set; } = default!;
+    public string NewPassword { get; set; } = default!;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

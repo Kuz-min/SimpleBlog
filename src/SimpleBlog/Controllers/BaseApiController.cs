@@ -1,31 +1,20 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 
 namespace SimpleBlog.Controllers;
 
-public abstract class BaseController<TController> : ControllerBase
+[ApiController]
+public abstract class BaseApiController<TController> : ControllerBase where TController : ControllerBase
 {
     protected ILogger<TController> Logger
     {
-        get
-        {
-            if (_logger == null)
-                _logger = HttpContext.RequestServices.GetRequiredService<ILogger<TController>>();
-
-            return _logger;
-        }
+        get => _logger ??= HttpContext.RequestServices.GetRequiredService<ILogger<TController>>();
     }
 
     protected IMapper Mapper
     {
-        get
-        {
-            if (_mapper == null)
-                _mapper = HttpContext.RequestServices.GetRequiredService<IMapper>();
-
-            return _mapper;
-        }
+        get => _mapper ??= HttpContext.RequestServices.GetRequiredService<IMapper>();
     }
 
     protected T Map<T>(object o) => Mapper.Map<T>(o);

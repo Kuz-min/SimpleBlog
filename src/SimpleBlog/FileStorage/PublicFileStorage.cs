@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
+using SimpleBlog.Configuration;
 
 namespace SimpleBlog.FileStorage;
 
@@ -11,8 +12,8 @@ public class PublicFileStorage : IPublicFileStorage
         var rootPath = TrimPath(configuration.Value.RootPath);
         _rootPath = !string.IsNullOrEmpty(rootPath) ? rootPath : DEFAULT_ROOT_PATH;
 
-        _typePaths = configuration.Value.TypePaths.Select(path => (Key: path.Key, Value: TrimPath(path.Value)))
-            .ToDictionary(p => p.Key, p => p.Value);
+        _typePaths = configuration.Value.TypePaths?.Select(path => (Key: path.Key, Value: TrimPath(path.Value)))
+            .ToDictionary(p => p.Key, p => p.Value) ?? new();
     }
 
     public async Task<Uri> CreateOrUpdateFileAsync(string type, string name, Stream stream)
@@ -37,7 +38,7 @@ public class PublicFileStorage : IPublicFileStorage
         return new Uri($"{url}/{name}?t={DateTime.Now.ToString("HHmmss")}", UriKind.Relative);
     }
 
-    private string TrimPath(string path) => path.Trim(new[] { ' ', '/' });
+    private string TrimPath(string? path) => path?.Trim(new[] { ' ', '/' }) ?? string.Empty;
 
     private readonly string _rootPath;
     private readonly Dictionary<string, string> _typePaths;

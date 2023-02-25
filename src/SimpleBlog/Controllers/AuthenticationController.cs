@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +25,8 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> TokenAsync()
     {
         var request = HttpContext.GetOpenIddictServerRequest();
-        if (request != null && request.IsPasswordGrantType())
+
+        if (request != null && request.IsPasswordGrantType() && !string.IsNullOrEmpty(request.Username) && !string.IsNullOrEmpty(request.Password))
         {
             var account = await _accountManager.FindByNameAsync(request.Username);
             if (account == null)

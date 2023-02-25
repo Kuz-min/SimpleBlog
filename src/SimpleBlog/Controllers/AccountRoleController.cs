@@ -1,19 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Services;
 using SimpleBlog.ViewModels;
 using System.Data;
 
 namespace SimpleBlog.Controllers;
 
-[ApiController]
 [Route("api/account-roles")]
-public class AccountRoleController : BaseController<AccountRoleController>
+public class AccountRoleController : BaseApiController<AccountRoleController>
 {
     public AccountRoleController(IAccountRoleService roleService)
     {
         _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
     }
 
+    [AllowAnonymous]
     [HttpGet("{roleName}")]
     public async Task<IActionResult> GetByNameAsync([FromRoute] string roleName)
     {
@@ -25,6 +26,7 @@ public class AccountRoleController : BaseController<AccountRoleController>
         return Ok(Map<AccountRoleViewModel>(role));
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllAsync()
     {

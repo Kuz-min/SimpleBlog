@@ -1,4 +1,4 @@
-﻿using SimpleBlog.Models;
+using SimpleBlog.Models;
 
 namespace SimpleBlog.Services;
 

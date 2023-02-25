@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimpleBlog.RequestModels;
@@ -6,9 +6,8 @@ namespace SimpleBlog.RequestModels;
 [BindProperties]
 public class ProfileUpdateRequestModel : IValidatableObject
 {
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = default!;
 
-    //Validation
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var errors = new List<ValidationResult>();

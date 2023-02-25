@@ -1,15 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimpleBlog.Authorization;
+using SimpleBlog.Constants;
 using SimpleBlog.FileStorage;
 using SimpleBlog.Services;
 using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
-[ApiController]
 [Route("api/profiles")]
-public class ProfileController : BaseController<ProfileController>
+public class ProfileController : BaseApiController<ProfileController>
 {
     public ProfileController(IPublicFileStorage fileStorage, IProfileService profileService)
     {
@@ -17,6 +16,7 @@ public class ProfileController : BaseController<ProfileController>
         _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
     }
 
+    [AllowAnonymous]
     [HttpGet("{profileId:guid}")]
     public async Task<IActionResult> GetByIdAsync([FromRoute] Guid profileId)
     {
@@ -29,7 +29,7 @@ public class ProfileController : BaseController<ProfileController>
     }
 
     [Authorize]
-    [Authorize(Policies.SameOwner)]
+    [Authorize(Policies.OwnerAccess)]
     [HttpPut("{profileId:guid}/image")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(524_288)]//512 kib
@@ -47,7 +47,7 @@ public class ProfileController : BaseController<ProfileController>
 
         var name = $"{profileId}.{contentSubType}";
         using var stream = file.OpenReadStream();
-        var uri = await _fileStorage.CreateOrUpdateFileAsync(FileType.ProfileImage, name, stream);
+        var uri = await _fileStorage.CreateOrUpdateFileAsync(FileTypes.ProfileImage, name, stream);
 
         profile.Image = uri;
         await _profileService.UpdateAsync(profile);

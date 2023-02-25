@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimpleBlog.RequestModels;
@@ -6,10 +6,8 @@ namespace SimpleBlog.RequestModels;
 [BindProperties]
 public class PostTagUpdateRequestModel : IValidatableObject
 {
-    //[BindProperty]
-    public string Title { get; set; } = string.Empty;
+    public string Title { get; set; } = default!;
 
-    //Validation
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var errors = new List<ValidationResult>();

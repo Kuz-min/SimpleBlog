@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using SimpleBlog.Configuration;
 
@@ -20,16 +20,16 @@ public class DefaultClientApplicationsSetup
         if (configs == null || configs.Count == 0)
             return;
 
-        if (!configs.All(config => config.IsValid()))
-            throw new InvalidOperationException("Client Application Configuration is not valid");
-
         var clientAppManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
         foreach (var config in configs)
         {
+            if (!config.IsValid())
+                continue;
+
             var clientApp = await clientAppManager.FindByClientIdAsync(config.Id);
 
-            if (clientApp is null)
+            if (clientApp == null)
             {
                 var clientAppDescriptor = new OpenIddictApplicationDescriptor()
                 {
@@ -37,6 +37,7 @@ public class DefaultClientApplicationsSetup
                     ClientSecret = config.Secret,
                     DisplayName = config.Name,
                 };
+
                 foreach (var permission in config.Permissions.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                     clientAppDescriptor.Permissions.Add(permission);
 

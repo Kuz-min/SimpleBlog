@@ -1,7 +1,7 @@
-﻿namespace SimpleBlog.Authorization;
+namespace SimpleBlog.Constants;
 
 public static class Policies
 {
-    public const string SameOwner = nameof(SameOwner);
+    public const string OwnerAccess = nameof(OwnerAccess);
     public const string PostTagFullAccess = nameof(PostTagFullAccess);
 }

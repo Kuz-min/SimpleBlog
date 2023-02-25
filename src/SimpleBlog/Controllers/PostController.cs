@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimpleBlog.Authorization;
+using SimpleBlog.Constants;
 using SimpleBlog.ModelBinders;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
@@ -9,9 +9,8 @@ using SimpleBlog.ViewModels;
 
 namespace SimpleBlog.Controllers;
 
-[ApiController]
 [Route("api/posts")]
-public class PostController : BaseController<PostController>
+public class PostController : BaseApiController<PostController>
 {
     public PostController(IAuthorizationService authorizationService, IPostService postService)
     {
@@ -19,6 +18,7 @@ public class PostController : BaseController<PostController>
         _postService = postService ?? throw new ArgumentNullException(nameof(postService));
     }
 
+    [AllowAnonymous]
     [HttpGet("{postId:int}")]
     public async Task<IActionResult> GetByIdAsync([FromRoute] int postId)
     {
@@ -30,6 +30,7 @@ public class PostController : BaseController<PostController>
         return Ok(Map<PostViewModel>(post));
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetByIdAsync(
         [FromQuery(Name = "ids")][ModelBinder(typeof(SeparatedStringToArrayBinder))] IEnumerable<int>? ids = default
@@ -48,6 +49,7 @@ public class PostController : BaseController<PostController>
         return Ok(vm);
     }
 
+    [AllowAnonymous]
     [HttpGet("search")]
     public async Task<IActionResult> SearchAsync([FromQuery] PostSearchRequestModel request)
     {
@@ -73,11 +75,11 @@ public class PostController : BaseController<PostController>
             Content = request.Content,
             CreatedOn = DateTime.Now,
             OwnerId = accountId,
+            Tags = new HashSet<Post_PostTag>(),
         };
 
         if (request.TagIds != null && request.TagIds.Count() != 0)
         {
-            post.Tags = new HashSet<Post_PostTag>();
             foreach (var tagId in request.TagIds)
             {
                 post.Tags.Add(new Post_PostTag { PostTagId = tagId });
@@ -92,19 +94,19 @@ public class PostController : BaseController<PostController>
     }
 
     [Authorize]
+    //Policies.OwnerAccess
     [HttpPut("{postId:int}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] int postId, [FromBody] PostUpdateRequestModel request)
     {
         var accountId = GetAccountId();
-
         var post = await _postService.GetByIdAsync(postId);
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.OwnerAccess);
+        if (authorizationResult == null || !authorizationResult.Succeeded)
+            return Forbid();
 
         if (post == null)
             return BadRequest();
-
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
-        if (authorizationResult == null || !authorizationResult.Succeeded)
-            return Forbid();
 
         post.Title = request.Title;
         post.Content = request.Content;
@@ -132,19 +134,19 @@ public class PostController : BaseController<PostController>
     }
 
     [Authorize]
+    //Policies.OwnerAccess
     [HttpDelete("{postId:int}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] int postId)
     {
         var accountId = GetAccountId();
-
         var post = await _postService.GetByIdAsync(postId);
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.OwnerAccess);
+        if (authorizationResult == null || !authorizationResult.Succeeded)
+            return Forbid();
 
         if (post == null)
             return BadRequest();
-
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.SameOwner);
-        if (authorizationResult == null || !authorizationResult.Succeeded)
-            return Forbid();
 
         await _postService.DeleteAsync(post);
 

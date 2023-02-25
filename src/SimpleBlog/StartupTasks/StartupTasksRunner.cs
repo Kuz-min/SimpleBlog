@@ -1,4 +1,4 @@
-﻿namespace SimpleBlog.StartupTasks;
+namespace SimpleBlog.StartupTasks;
 
 public class StartupTasksRunner : IHostedService
 {

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using SimpleBlog.Authorization;
 using SimpleBlog.Configuration;
+using SimpleBlog.Constants;
 using SimpleBlog.Models;
 using System.Security.Claims;
 
@@ -23,16 +23,16 @@ public class DefaultRolesSetup
         if (configs == null || configs.Count == 0)
             return;
 
-        if (!configs.All(config => config.IsValid()))
-            throw new InvalidOperationException("Default Role Configuration is not valid");
-
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AccountRole>>();
 
         foreach (var config in configs)
         {
+            if (!config.IsValid())
+                continue;
+
             var role = await roleManager.FindByNameAsync(config.Name);
 
-            if (role is null)
+            if (role == null)
             {
                 role = new AccountRole();
                 role.Name = config.Name;
@@ -40,7 +40,7 @@ public class DefaultRolesSetup
 
                 foreach (var permission in config.Permissions.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                 {
-                    await roleManager.AddClaimAsync(role, new Claim(SimpleBlogClaims.Permission, permission));
+                    await roleManager.AddClaimAsync(role, new Claim(Claims.Permission, permission));
                 }
             }
         }

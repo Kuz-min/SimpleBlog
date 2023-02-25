@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SimpleBlog.Database.Configurations;
 using SimpleBlog.Models;
+using System.Reflection;
 
 namespace SimpleBlog.Database;
 
@@ -11,7 +11,6 @@ public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid, Identi
     public DbSet<Post> Posts { get; set; }
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<PostTag> PostTags { get; set; }
-    public DbSet<Post_PostTag> Post_PostTags { get; set; }
 
     public BlogDatabase(DbContextOptions<BlogDatabase> options) : base(options)
     {
@@ -22,10 +21,6 @@ public class BlogDatabase : IdentityDbContext<Account, AccountRole, Guid, Identi
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfiguration(new AccountRoleConfiguration());
-        modelBuilder.ApplyConfiguration(new PostConfiguration());
-        modelBuilder.ApplyConfiguration(new PostTagConfiguration());
-        modelBuilder.ApplyConfiguration(new Post_PostTagConfiguration());
-        modelBuilder.ApplyConfiguration(new ProfileConfiguration());
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

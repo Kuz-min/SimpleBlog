@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database;
 using SimpleBlog.Models;
 
@@ -16,11 +16,6 @@ public class ProfileService : IProfileService
     {
         return await _database.Profiles.FirstOrDefaultAsync(p => p.Id == id);
     }
-
-    //public async Task<Profile?> GetByAccountIdAsync(Guid accountId)
-    //{
-    //    return await _database.Profiles.FirstOrDefaultAsync(p => p.AccountId == accountId);
-    //}
 
     public async Task<Profile> InsertAsync(Profile profile)
     {

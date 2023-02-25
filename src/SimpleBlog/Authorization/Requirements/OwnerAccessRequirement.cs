@@ -2,4 +2,4 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SimpleBlog.Authorization;
 
-public class PostTagFullAccessRequirement : IAuthorizationRequirement { }
+public class OwnerAccessRequirement : IAuthorizationRequirement { }
