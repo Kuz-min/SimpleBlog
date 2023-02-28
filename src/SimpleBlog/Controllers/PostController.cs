@@ -6,6 +6,7 @@ using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
 using SimpleBlog.Services;
 using SimpleBlog.ViewModels;
+using System.Security.Claims;
 
 namespace SimpleBlog.Controllers;
 
@@ -94,15 +95,14 @@ public class PostController : BaseApiController<PostController>
     }
 
     [Authorize]
-    //Policies.OwnerAccess
+    //Policies.OwnerAccess || Policies.PostFullAccess
     [HttpPut("{postId:int}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] int postId, [FromBody] PostUpdateRequestModel request)
     {
         var accountId = GetAccountId();
         var post = await _postService.GetByIdAsync(postId);
 
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.OwnerAccess);
-        if (authorizationResult == null || !authorizationResult.Succeeded)
+        if (!(await IsAuthorized(User, Policies.OwnerAccess, post) || await IsAuthorized(User, Policies.PostFullAccess)))
             return Forbid();
 
         if (post == null)
@@ -134,15 +134,14 @@ public class PostController : BaseApiController<PostController>
     }
 
     [Authorize]
-    //Policies.OwnerAccess
+    //Policies.OwnerAccess || Policies.PostFullAccess
     [HttpDelete("{postId:int}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] int postId)
     {
         var accountId = GetAccountId();
         var post = await _postService.GetByIdAsync(postId);
 
-        var authorizationResult = await _authorizationService.AuthorizeAsync(User, post, Policies.OwnerAccess);
-        if (authorizationResult == null || !authorizationResult.Succeeded)
+        if (!(await IsAuthorized(User, Policies.OwnerAccess, post) || await IsAuthorized(User, Policies.PostFullAccess)))
             return Forbid();
 
         if (post == null)
@@ -153,6 +152,12 @@ public class PostController : BaseApiController<PostController>
         Logger.LogInformation($"Post with id {post.Id} deleted by user {accountId}");
 
         return Ok();
+    }
+
+    private async Task<bool> IsAuthorized(ClaimsPrincipal user, string policyName, Post? resource = default)
+    {
+        var authorizationResult = await _authorizationService.AuthorizeAsync(user, resource, policyName);
+        return (authorizationResult != null && authorizationResult.Succeeded);
     }
 
     private readonly IAuthorizationService _authorizationService;

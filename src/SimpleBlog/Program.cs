@@ -107,11 +107,13 @@ public class Program
 
             options.AddPolicy(Policies.OwnerAccess, policy => policy.Requirements.Add(new OwnerAccessRequirement()));
             options.AddPolicy(Policies.PostTagFullAccess, policy => policy.Requirements.Add(new PostTagFullAccessRequirement()));
+            options.AddPolicy(Policies.PostFullAccess, policy => policy.Requirements.Add(new PostFullAccessRequirement()));
         });
 
-        builder.Services.AddSingleton<IAuthorizationHandler, ProfileOwnerAccessAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, PostFullAccessAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationHandler, PostOwnerAccessAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationHandler, PostTagFullAccessAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, ProfileOwnerAccessAuthorizationHandler>();
 
         //MyServices
         builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
