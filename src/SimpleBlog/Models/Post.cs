@@ -6,6 +6,7 @@ public class Post
     public string Title { get; set; } = default!;
     public string Content { get; set; } = default!;
     public DateTime CreatedOn { get; set; }
+    public Uri? Image { get; set; }
 
     public Guid OwnerId { get; set; }
     public Profile Owner { get; set; } = default!;

@@ -6,6 +6,7 @@ public class PostViewModel
     public string title { get; set; } = default!;
     public string content { get; set; } = default!;
     public DateTime createdOn { get; set; }
+    public Uri? image { get; set; }
 
     public string ownerId { get; set; } = default!;
 

@@ -15,6 +15,7 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
         builder.Property(p => p.Title).IsRequired();
         builder.Property(p => p.Content).IsRequired();
         builder.Property(p => p.CreatedOn).IsRequired();
+        builder.Property(p => p.Image).IsRequired(false);
 
         builder.HasOne(p => p.Owner).WithMany(o => o.Posts).HasForeignKey(p => p.OwnerId).IsRequired();
     }

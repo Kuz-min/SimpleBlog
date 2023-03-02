@@ -37,11 +37,11 @@ public class PostService : IPostService
 
             var sqlTagIds = ToSqlParameters(tagIds, 0);
             var sqlRaw = $"""
-                SELECT p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId
+                SELECT p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId, p.Image
                 FROM [{PostConfiguration.TableName}] AS p
                 INNER JOIN [{Post_PostTagConfiguration.TableName}] AS ppt ON p.Id = ppt.PostId
                 WHERE ppt.PostTagId IN ({string.Join(',', sqlTagIds)})
-                GROUP BY p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId 
+                GROUP BY p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId, p.Image
                 HAVING COUNT(p.Id) = {sqlTagIds.Count()}
                 """;
 
