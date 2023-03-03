@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SimpleBlog.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimpleBlog.RequestModels;
@@ -8,6 +9,7 @@ public class PostCreateRequestModel : IValidatableObject
 {
     public string Title { get; set; } = default!;
     public string Content { get; set; } = default!;
+    public IFormFile? Image { get; set; }
     public IEnumerable<int>? TagIds { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -19,6 +21,10 @@ public class PostCreateRequestModel : IValidatableObject
 
         if (string.IsNullOrWhiteSpace(Content))
             errors.Add(new ValidationResult("EMPTY", new[] { nameof(Content) }));
+
+        if (Image != null)
+            if (Image.Length == 0 || !Validators.ImageContentType.IsMatch(Image.ContentType))
+                errors.Add(new ValidationResult("INVALID", new[] { nameof(Image) }));
 
         return errors;
     }

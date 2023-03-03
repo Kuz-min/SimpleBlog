@@ -65,8 +65,16 @@ export class PostService {
     );
   }
 
-  public createAsync(data: { title: string, content: string, tagIds?: number[] }): Observable<Post> {
-    return this._http.post<Post>(this._urls.create(), data, { headers: { 'Authorization': '' } }).pipe(
+  public createAsync(data: { title: string, content: string, image?: File, tagIds?: number[] }): Observable<Post> {
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    if (data.image)
+      formData.append("image", data.image);
+    if (data.tagIds)
+      data.tagIds.forEach(value => formData.append("tagIds[]", value.toString()));
+
+    return this._http.post<Post>(this._urls.create(), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
       tap(post => this._postStore.update(upsertEntities(post))),
@@ -79,8 +87,16 @@ export class PostService {
     );
   }
 
-  public updateAsync(id: number, data: { title: string, content: string, tagIds?: number[] }): Observable<Post> {
-    return this._http.put<Post>(this._urls.update(id), data, { headers: { 'Authorization': '' } }).pipe(
+  public updateAsync(id: number, data: { title: string, content: string, image?: File, tagIds?: number[] }): Observable<Post> {
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    if (data.image)
+      formData.append("image", data.image);
+    if (data.tagIds)
+      data.tagIds.forEach(value => formData.append("tagIds[]", value.toString()));
+
+    return this._http.put<Post>(this._urls.update(id), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
       timeout(3000),
       tap(post => this._postStore.update(upsertEntities(post))),

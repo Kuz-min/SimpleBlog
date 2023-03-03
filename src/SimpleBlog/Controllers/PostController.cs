@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimpleBlog.Constants;
+using SimpleBlog.FileStorage;
 using SimpleBlog.ModelBinders;
 using SimpleBlog.Models;
 using SimpleBlog.RequestModels;
@@ -13,9 +14,10 @@ namespace SimpleBlog.Controllers;
 [Route("api/posts")]
 public class PostController : BaseApiController<PostController>
 {
-    public PostController(IAuthorizationService authorizationService, IPostService postService)
+    public PostController(IAuthorizationService authorizationService, IPublicFileStorage fileStorage, IPostService postService)
     {
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+        _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
         _postService = postService ?? throw new ArgumentNullException(nameof(postService));
     }
 
@@ -66,7 +68,9 @@ public class PostController : BaseApiController<PostController>
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] PostCreateRequestModel request)
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(524_288)]//512 kib
+    public async Task<IActionResult> CreateAsync([FromForm] PostCreateRequestModel request)
     {
         var accountId = GetAccountId();
 
@@ -76,6 +80,7 @@ public class PostController : BaseApiController<PostController>
             Content = request.Content,
             CreatedOn = DateTime.Now,
             OwnerId = accountId,
+            Image = request.Image != null ? await SaveImageAsync(request.Image) : null,
             Tags = new HashSet<Post_PostTag>(),
         };
 
@@ -97,9 +102,12 @@ public class PostController : BaseApiController<PostController>
     [Authorize]
     //Policies.OwnerAccess || Policies.PostFullAccess
     [HttpPut("{postId:int}")]
-    public async Task<IActionResult> UpdateAsync([FromRoute] int postId, [FromBody] PostUpdateRequestModel request)
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(524_288)]//512 kib
+    public async Task<IActionResult> UpdateAsync([FromRoute] int postId, [FromForm] PostUpdateRequestModel request)
     {
         var accountId = GetAccountId();
+
         var post = await _postService.GetByIdAsync(postId);
 
         if (!(await IsAuthorized(User, Policies.OwnerAccess, post) || await IsAuthorized(User, Policies.PostFullAccess)))
@@ -110,6 +118,11 @@ public class PostController : BaseApiController<PostController>
 
         post.Title = request.Title;
         post.Content = request.Content;
+
+        if (request.Image != null)
+        {
+            post.Image = await SaveImageAsync(request.Image);
+        }
 
         if (request.TagIds == null || request.TagIds.Count() == 0)
         {
@@ -160,6 +173,15 @@ public class PostController : BaseApiController<PostController>
         return (authorizationResult != null && authorizationResult.Succeeded);
     }
 
+    private async Task<Uri?> SaveImageAsync(IFormFile image)
+    {
+        var contentSubType = image.ContentType.Split('/') is [_, var b] ? b : null;
+        var name = $"{Guid.NewGuid()}.{contentSubType}";
+        using var stream = image.OpenReadStream();
+        return await _fileStorage.CreateOrUpdateFileAsync(FileTypes.PostImage, name, stream);
+    }
+
     private readonly IAuthorizationService _authorizationService;
+    private readonly IPublicFileStorage _fileStorage;
     private readonly IPostService _postService;
 }
