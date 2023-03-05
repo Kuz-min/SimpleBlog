@@ -39,7 +39,7 @@ public class SeparatedStringToArrayBinder : IModelBinder
         return Task.CompletedTask;
     }
 
-    private IEnumerable? TryParseArray<T>(IEnumerable<string> rawArray, Func<string, (bool, T)> converter)
+    private IEnumerable<T>? TryParseArray<T>(IEnumerable<string> rawArray, Func<string, (bool, T)> converter)
     {
         var success = true;
         var array = new List<T>();
@@ -48,10 +48,10 @@ public class SeparatedStringToArrayBinder : IModelBinder
         {
             var (result, value) = converter(item);
 
-            if (!result)
+            if (result)
+                array.Add(value);
+            else
                 success = false;
-
-            array.Add(value);
         }
 
         return success ? array : null;
