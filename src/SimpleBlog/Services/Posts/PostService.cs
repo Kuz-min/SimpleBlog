@@ -1,7 +1,5 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SimpleBlog.Database;
-using SimpleBlog.Database.Configurations;
 using SimpleBlog.Models;
 
 namespace SimpleBlog.Services;
@@ -29,30 +27,12 @@ public class PostService : IPostService
 
     public async Task<IEnumerable<Post>> SearchAsync(IEnumerable<int>? tagIds, int offset, int count)
     {
-        IQueryable<Post> request;
-
-        if (tagIds != null && tagIds.Count() > 0)
-        {
-            //request = request.Where(post => tagIds.All(tagId => post.Tags.Any(t => t.PostTagId == tagId))); dont work
-
-            var sqlTagIds = ToSqlParameters(tagIds, 0);
-            var sqlRaw = $"""
-                SELECT p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId, p.Image
-                FROM [{PostConfiguration.TableName}] AS p
-                INNER JOIN [{Post_PostTagConfiguration.TableName}] AS ppt ON p.Id = ppt.PostId
-                WHERE ppt.PostTagId IN ({string.Join(',', sqlTagIds)})
-                GROUP BY p.Id, p.Title, p.Content, p.CreatedOn, p.OwnerId, p.Image
-                HAVING COUNT(p.Id) = {sqlTagIds.Count()}
-                """;
-
-            request = _database.Posts.FromSqlRaw(sqlRaw, sqlTagIds.ToArray());
-        }
-        else
-        {
-            request = _database.Posts.AsQueryable();
-        }
+        IQueryable<Post> request = _database.Posts.AsNoTracking();
 
         request = request.Include(p => p.Tags);
+
+        if (tagIds != null && tagIds.Count() > 0)
+            request = request.Where(post => post.Tags.Count(tag => tagIds.Contains(tag.PostTagId)) == tagIds.Count());
 
         request = request.OrderBy(q => q.CreatedOn);
 
@@ -61,7 +41,7 @@ public class PostService : IPostService
 
         request = request.Take(count);
 
-        //_logger.LogInformation(request.ToQueryString());
+        _logger.LogDebug(request.ToQueryString());
 
         return await request.ToListAsync();
     }
@@ -93,17 +73,6 @@ public class PostService : IPostService
 
         _database.Posts.Remove(post);
         await _database.SaveChangesAsync();
-    }
-
-    private IEnumerable<SqlParameter> ToSqlParameters<T>(IEnumerable<T> array, int startIndex)
-    {
-        var sqlParameters = new List<SqlParameter>();
-        var index = startIndex;
-
-        foreach (var item in array)
-            sqlParameters.Add(new SqlParameter($"@p{index++}", item));
-
-        return sqlParameters;
     }
 
     private readonly ILogger<PostService> _logger;
