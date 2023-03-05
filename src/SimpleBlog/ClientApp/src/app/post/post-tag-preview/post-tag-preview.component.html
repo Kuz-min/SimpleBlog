@@ -1,1 +1,1 @@
-{{(tag | async)?.title}}
+<a [routerLink]="['/']" [queryParams]="{tag_ids: (tag | async)?.id}">{{(tag | async)?.title}}</a>

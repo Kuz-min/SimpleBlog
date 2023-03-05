@@ -19,12 +19,11 @@ export class PostTagPreviewComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-
-    if (this.tagId)
+    if (this.tagId) {
       this.tag = this._postTagService.getByIdAsync(this.tagId).pipe(
-        catchError(error => (error as HttpErrorResponse)?.status == 404 ? of(null) : throwError(error)),
+        catchError(error => (error instanceof HttpErrorResponse) && error.status == 404 ? of(null) : throwError(error)),
       );
-
+    }
   }
 
 }
