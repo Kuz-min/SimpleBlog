@@ -1,1 +1,1 @@
-{{(profile | async)?.name}}
+<a [routerLink]="['/profiles', (profile | async)?.id]">{{(profile | async)?.name}}</a>

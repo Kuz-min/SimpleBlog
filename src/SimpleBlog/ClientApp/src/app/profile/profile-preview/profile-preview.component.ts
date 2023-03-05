@@ -19,13 +19,11 @@ export class ProfilePreviewComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-
     if (this.profileId) {
       this.profile = this._profileService.getByIdAsync(this.profileId).pipe(
-        catchError(error => (error as HttpErrorResponse)?.status == 404 ? of(null) : throwError(error)),
+        catchError(error => (error instanceof HttpErrorResponse) && error.status == 404 ? of(null) : throwError(error)),
       );
     }
-
   }
 
 }
