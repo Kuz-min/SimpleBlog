@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { BehaviorSubject, catchError, filter, first, Observable, of, Subscription, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, delay, filter, first, Observable, of, Subscription, tap, throwError } from 'rxjs';
 import { Post, PostTag, PostTagService } from 'simple-blog/core';
 
 @Component({
@@ -22,6 +22,7 @@ export class PostFormComponent implements OnInit, OnDestroy {
   readonly form = new FormGroup({
     title: new FormControl('', [Validators.required]),
     content: new FormControl('', [Validators.required]),
+    image: new FormControl(),
     tagIds: new FormControl<number[]>([]),
   });
 
@@ -44,9 +45,10 @@ export class PostFormComponent implements OnInit, OnDestroy {
     }
 
     if (this.disabled) {
-      this._disabledSubscription = this.disabled.subscribe(
-        next => next ? this.form.disable() : this.form.enable(),
-      );
+      this._disabledSubscription = this.disabled.pipe(
+        delay(1),
+        tap(value => value ? this.form.disable() : this.form.enable()),
+      ).subscribe();
     }
 
   }
