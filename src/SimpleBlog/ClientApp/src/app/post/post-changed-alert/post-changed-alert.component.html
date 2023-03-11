@@ -1,0 +1,6 @@
+<p class="text-center">{{data.message}}</p>
+<div class="d-flex justify-content-center">
+  <a class="btn btn-primary m-2" [routerLink]="['/']" (click)="close()">Home</a>
+  <a *ngIf="data.post" class="btn btn-primary m-2" [routerLink]="['/posts', data.post.id]" (click)="close()">Show</a>
+  <button class="btn btn-primary m-2" (click)="close()">Close</button>
+</div>

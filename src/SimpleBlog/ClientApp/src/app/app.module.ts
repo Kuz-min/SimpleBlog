@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { OAuthModule, OAuthStorage } from 'angular-oauth2-oidc';
 import { AccountModule } from './account/account.module';
 import { AppRoutingModule } from './app-routing.module';
@@ -19,20 +20,26 @@ import { SharedModule } from './shared/shared.module';
     HomeComponent,
   ],
   imports: [
+    //angular
     CoreModule,
     BrowserModule, //.withServerTransition({ appId: 'ng-cli-universal' }),
-    FormsModule,
+    BrowserAnimationsModule,
     HttpClientModule,
+    FormsModule,
 
+    //angular material
     MatListModule,
 
+    //libs
     OAuthModule.forRoot(),
 
+    //app
     AccountModule,
     PostModule,
     ProfileModule,
     SharedModule,
 
+    //routing
     AppRoutingModule,//Shuld be last, else rout 404 ** handle all paths
   ],
   providers: [
