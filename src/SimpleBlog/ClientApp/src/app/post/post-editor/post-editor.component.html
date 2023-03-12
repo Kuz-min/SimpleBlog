@@ -1,44 +1,13 @@
 <div class="row">
 
-  <ng-container *ngIf="(isUpdated | async)">
-    <div class="col">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="card-title">Post updated</h2>
-          <button class="btn btn-primary" [routerLink]="['/']">Home</button>
-        </div>
-      </div>
+  <div class="col-md-9">
+    <div class="border rounded my-2">
+      <post-form [post]="post" [disabled]="lockForm" (complited)="updatePost($event)"></post-form>
     </div>
-  </ng-container>
+  </div>
 
-  <ng-container *ngIf="(isDeleted | async)">
-    <div class="col">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="card-title">Post deleted</h2>
-          <button class="btn btn-primary" [routerLink]="['/']">Home</button>
-        </div>
-      </div>
-    </div>
-  </ng-container>
-
-  <ng-container *ngIf="!(isDeleted | async) && !(isUpdated | async)">
-
-    <div class="col-md-9">
-
-      <div class="border rounded-2 my-2">
-        <post-form [post]="post" [disabled]="lockForm" (complited)="updatePost($event)"></post-form>
-      </div>
-
-    </div>
-
-
-    <div class="col-md-3">
-
-      <button class="btn btn-primary my-2 w-100" (click)="deletePost()">Delete</button>
-
-    </div>
-
-  </ng-container>
+  <div class="col">
+    <button class="btn btn-primary my-2 w-100" (click)="deletePost()">Delete</button>
+  </div>
 
 </div>
