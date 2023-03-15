@@ -7,11 +7,11 @@
         <label class="mb-2" for="username">Username: </label>
         <input class="form-control" id="username" type="text" formControlName="username">
 
-        <ng-container *ngIf="form.controls.username.touched || form.controls.username.dirty">
-          <div *ngIf="form.controls.username.errors?.['required']" class="alert alert-danger p-2 mt-2">
+        <ng-container *ngIf="form.controls.username.touched">
+          <div *ngIf="form.controls.username.hasError('required')" class="alert alert-danger p-2 mt-2">
             Username is required.
           </div>
-          <div *ngIf="form.controls.username.errors?.['pattern']" class="alert alert-danger p-2 mt-2">
+          <div *ngIf="form.controls.username.hasError('pattern')" class="alert alert-danger p-2 mt-2">
             Username is invalid.
           </div>
         </ng-container>
@@ -21,8 +21,8 @@
         <label class="mb-2" for="password">Password: </label>
         <input class="form-control" id="password" type="password" formControlName="password">
 
-        <ng-container *ngIf="form.controls.password.touched || form.controls.password.dirty">
-          <div *ngIf="form.controls.password.errors?.['required']" class="alert alert-danger p-2 mt-2">
+        <ng-container *ngIf="form.controls.password.touched">
+          <div *ngIf="form.controls.password.hasError('required')" class="alert alert-danger p-2 mt-2">
             Password is required.
           </div>
         </ng-container>
