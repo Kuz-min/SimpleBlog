@@ -4,7 +4,7 @@ import { createStore } from '@ngneat/elf';
 import { selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError, timeout } from 'rxjs';
+import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { Profile } from 'simple-blog/core';
 
 @Injectable()
@@ -23,7 +23,6 @@ export class ProfileService {
       filter(request => !(request.isLoading)),
       switchMap(() => this._http.get<Profile>(this._urls.getById(id)).pipe(
         first(),
-        timeout(3000),
         trackRequestResult(key, { staleTime: 30_000 }),
       )),
       catchError(() => EMPTY),
@@ -45,7 +44,6 @@ export class ProfileService {
 
     return this._http.put<Profile>(this._urls.updateImage(id), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      timeout(3000),
       tap(profile => this._profileStore.update(upsertEntities(profile))),
       switchMap(() => this._profileStore.pipe(
         selectEntity(id),

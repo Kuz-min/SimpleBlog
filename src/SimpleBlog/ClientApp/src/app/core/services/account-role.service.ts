@@ -4,7 +4,7 @@ import { createStore } from '@ngneat/elf';
 import { selectAllEntities, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, Observable, of, switchMap, throwError, timeout } from 'rxjs';
+import { catchError, EMPTY, filter, first, Observable, of, switchMap, throwError } from 'rxjs';
 import { AccountRole } from 'simple-blog/core';
 
 @Injectable()
@@ -23,7 +23,6 @@ export class AccountRoleService {
       filter(request => !(request.isLoading)),
       switchMap(() => this._http.get<AccountRole[]>(this._urls.getAll()).pipe(
         first(),
-        timeout(3000),
         catchError(error => error instanceof HttpErrorResponse && error.status == 404 ? of([]) : throwError(error)),
         trackRequestResult(key, { staleTime: 30_000 }),
       )),

@@ -4,7 +4,7 @@ import { createStore } from '@ngneat/elf';
 import { deleteEntitiesByPredicate, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError, timeout } from 'rxjs';
+import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { Post } from 'simple-blog/core';
 
 @Injectable()
@@ -23,7 +23,6 @@ export class PostService {
       filter(request => !(request.isLoading)),
       switchMap(() => this._http.get<Post>(this._urls.getById(id)).pipe(
         first(),
-        timeout(3000),
         trackRequestResult(key, { staleTime: 30_000 }),
       )),
       catchError(() => EMPTY),
@@ -54,7 +53,6 @@ export class PostService {
 
     return this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
       first(),
-      timeout(3000),
       tap(posts => of(posts).pipe(
         map(posts => posts.map(post => of(post).pipe(
           trackRequestResult(['post', post.id], { staleTime: 30_000 }),
@@ -76,7 +74,6 @@ export class PostService {
 
     return this._http.post<Post>(this._urls.create(), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      timeout(3000),
       tap(post => this._postStore.update(upsertEntities(post))),
       switchMap(post => this._postStore.pipe(
         selectEntity(post.id),
@@ -98,7 +95,6 @@ export class PostService {
 
     return this._http.put<Post>(this._urls.update(id), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      timeout(3000),
       tap(post => this._postStore.update(upsertEntities(post))),
       switchMap(() => this._postStore.pipe(
         selectEntity(id),
@@ -112,7 +108,6 @@ export class PostService {
   public deleteAsync(id: number): Observable<any> {
     return this._http.delete<any>(this._urls.delete(id), { headers: { 'Authorization': '' } }).pipe(
       first(),
-      timeout(3000),
       tap(() => this._postStore.update(deleteEntitiesByPredicate(post => post.id == id))),
       shareReplay(),
     );

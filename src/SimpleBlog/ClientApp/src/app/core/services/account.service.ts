@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { first, Observable, shareReplay, timeout } from 'rxjs';
+import { first, Observable, shareReplay } from 'rxjs';
 
 @Injectable()
 export class AccountService {
@@ -13,7 +13,6 @@ export class AccountService {
   public createAsync(data: { username: string, email: string, password: string }): Observable<any> {
     return this._http.post(this._baseUrl + 'api/accounts', data).pipe(
       first(),
-      timeout(3000),
       shareReplay(),
     );
   }
@@ -21,7 +20,6 @@ export class AccountService {
   public updatePassword(data: { currentPassword: string, newPassword: string }): Observable<any> {
     return this._http.put(this._baseUrl + 'api/accounts/password', data, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      timeout(3000),
       shareReplay(),
     );
   }
