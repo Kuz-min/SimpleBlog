@@ -1,19 +1,10 @@
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, RouterStateSnapshot } from '@angular/router';
 import { audit, interval, Observable } from 'rxjs';
-import { AuthenticationService } from 'simple-blog/core';
+import { AuthenticationService, ServerApiConstants } from 'simple-blog/core';
 
-@Injectable()
-export class IsAuthenticatedGuard implements CanActivate {
-
-  constructor(
-    private readonly _authService: AuthenticationService
-  ) { }
-
-  public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    return this._authService.isAuthenticatedAsync().pipe(
-      audit(isAuthenticated => isAuthenticated ? interval(0) : interval(250)),
-    );
-  }
-
-}
+export const isAuthenticatedGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> => {
+  return inject(AuthenticationService).isAuthenticatedAsync().pipe(
+    audit(isAuthenticated => isAuthenticated ? interval(0) : interval(ServerApiConstants.DefaultHttpTimeout)),
+  );
+};

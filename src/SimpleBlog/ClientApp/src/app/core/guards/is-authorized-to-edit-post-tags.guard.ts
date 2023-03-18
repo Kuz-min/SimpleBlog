@@ -1,19 +1,10 @@
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, RouterStateSnapshot } from '@angular/router';
 import { audit, interval, Observable } from 'rxjs';
-import { AuthorizationService } from 'simple-blog/core';
+import { AuthorizationService, ServerApiConstants } from 'simple-blog/core';
 
-@Injectable()
-export class IsAuthorizedToEditPostTagsGuard implements CanActivate {
-
-  constructor(
-    private readonly _authorizationService: AuthorizationService,
-  ) { }
-
-  public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    return this._authorizationService.isAuthorizedToEditPostTags().pipe(
-      audit(isAuthorized => isAuthorized ? interval(0) : interval(250)),
-    );
-  }
-
-}
+export const isAuthorizedToEditPostTagsGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> => {
+  return inject(AuthorizationService).isAuthorizedToEditPostTags().pipe(
+    audit(isAuthorized => isAuthorized ? interval(0) : interval(ServerApiConstants.DefaultHttpTimeout)),
+  );
+};
