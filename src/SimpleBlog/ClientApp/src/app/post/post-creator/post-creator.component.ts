@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, catchError, finalize, first, switchMap, throwError } from 'rxjs';
-import { PostService } from 'simple-blog/core';
+import { PostFormModel, PostService } from 'simple-blog/core';
 import { PostChangedAlertComponent } from '../post-changed-alert/post-changed-alert.component';
 
 @Component({
@@ -19,7 +19,7 @@ export class PostCreatorComponent {
     private readonly _postService: PostService,
   ) { }
 
-  onComplited(data: { title: string, content: string, image?: File, tagIds?: number[] }): void {
+  onComplited(data: PostFormModel): void {
     this.lockForm.next(true);
     this._postService.createAsync(data).pipe(
       first(),

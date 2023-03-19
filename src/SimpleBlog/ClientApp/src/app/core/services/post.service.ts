@@ -5,7 +5,7 @@ import { deleteEntitiesByPredicate, selectEntity, upsertEntities, withEntities }
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
 import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Post } from 'simple-blog/core';
+import { Post, PostFormModel } from 'simple-blog/core';
 
 @Injectable()
 export class PostService {
@@ -63,7 +63,7 @@ export class PostService {
     );
   }
 
-  public createAsync(data: { title: string, content: string, image?: File, tagIds?: number[] }): Observable<Post> {
+  public createAsync(data: PostFormModel): Observable<Post> {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content);
@@ -84,7 +84,7 @@ export class PostService {
     );
   }
 
-  public updateAsync(id: number, data: { title: string, content: string, image?: File, tagIds?: number[] }): Observable<Post> {
+  public updateAsync(id: number, data: PostFormModel): Observable<Post> {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content);

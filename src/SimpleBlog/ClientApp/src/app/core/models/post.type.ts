@@ -9,3 +9,10 @@ export interface Post {
 
   tagIds: number[],
 }
+
+export interface PostFormModel {
+  title: string,
+  content: string,
+  image?: File,
+  tagIds?: number[],
+}

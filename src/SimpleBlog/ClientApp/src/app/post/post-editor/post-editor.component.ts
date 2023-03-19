@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarDismiss } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, catchError, filter, finalize, first, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
-import { Post, PostService } from 'simple-blog/core';
+import { Post, PostFormModel, PostService } from 'simple-blog/core';
 import { PostChangedAlertComponent } from '../post-changed-alert/post-changed-alert.component';
 
 @Component({
@@ -35,7 +35,7 @@ export class PostEditorComponent implements OnInit {
     );
   }
 
-  updatePost(data: { title: string, content: string, image?: File, tagIds?: number[] }): void {
+  updatePost(data: PostFormModel): void {
     if (!this._postId)
       return;
 
