@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SimpleBlog.Constants;
+using SimpleBlog.Utilities;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimpleBlog.RequestModels;
@@ -23,7 +23,7 @@ public class PostUpdateRequestModel : IValidatableObject
             errors.Add(new ValidationResult("EMPTY", new[] { nameof(Content) }));
 
         if (Image != null)
-            if (Image.Length == 0 || !Validators.ImageContentType.IsMatch(Image.ContentType))
+            if (Image.Length == 0 || !Image.IsImage())
                 errors.Add(new ValidationResult("INVALID", new[] { nameof(Image) }));
 
         return errors;
