@@ -1,29 +1,29 @@
 <div class="d-flex flex-column border rounded">
 
   <div class="border-bottom p-2">
-    <a class="h4 text-dark" [routerLink]="['/posts', post?.id]">{{post?.title}}</a>
+    <a class="h4 text-dark" [routerLink]="['/posts', (post | async)?.id]">{{(post | async)?.title}}</a>
   </div>
 
   <div class="row g-0 border-bottom">
-    <div class="col-4 col-lg-3" *ngIf="post?.image">
-      <img class="w-100 rounded" [src]="post?.image" />
+    <div class="col-4 col-lg-3" *ngIf="(post | async)?.image">
+      <img class="w-100 rounded" [src]="(post | async)?.image" />
     </div>
     <div class="col p-2">
-      <p class="m-0">{{post?.content}}</p>
+      <p class="m-0">{{(post | async)?.content}}</p>
     </div>
   </div>
 
-  <div class="d-flex flex-wrap border-bottom p-2" *ngIf="post?.tagIds?.length! > 0">
+  <div class="d-flex flex-wrap border-bottom p-2" *ngIf="(post | async)?.tagIds?.length! > 0">
     Tags:&nbsp;
-    <ng-container *ngFor="let tagId of post?.tagIds">
+    <ng-container *ngFor="let tagId of (post | async)?.tagIds">
       <post-tag-preview class="me-1" [tagId]="tagId"></post-tag-preview>
     </ng-container>
   </div>
 
   <div class="d-flex justify-content-between align-items-center p-2">
-    <small class="text-muted">{{post?.createdOn | date:'H:mm dd.MM.Y' }}</small>
-    <profile-preview [profileId]="post?.ownerId"></profile-preview>
-    <a class="btn btn-primary" [routerLink]="['/posts', post?.id]">Read More</a>
+    <small class="text-muted">{{(post | async)?.createdOn | date:'H:mm dd.MM.Y' }}</small>
+    <profile-preview [profileId]="(post | async)?.ownerId"></profile-preview>
+    <a class="btn btn-primary" [routerLink]="['/posts', (post | async)?.id]">Read More</a>
   </div>
 
 </div>

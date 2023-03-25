@@ -16,8 +16,8 @@
 
 
   <div class="col-md-8 col-lg-9">
-    <div class="my-2" *ngFor="let post of (posts | async)">
-      <post-preview [post]="post">
+    <div class="my-2" *ngFor="let postId of (postIds | async)">
+      <post-preview [postId]="postId">
       </post-preview>
     </div>
   </div>

@@ -1,11 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { createStore } from '@ngneat/elf';
-import { deleteEntitiesByPredicate, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
-import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
-import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Post, PostFormModel } from 'simple-blog/core';
+import { deleteAllEntities, deleteEntitiesByPredicate, getEntitiesIds, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
+import { deleteRequestResult, getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
+import { catchError, EMPTY, filter, first, from, map, Observable, of, shareReplay, switchMap, tap, throwError, toArray } from 'rxjs';
+import { Post, PostFormModel, ServerApiConstants } from 'simple-blog/core';
 
 @Injectable()
 export class PostService {
@@ -20,46 +19,64 @@ export class PostService {
 
     getRequestResult(key, { initialStatus: 'idle' }).pipe(
       first(),
-      filter(request => !(request.isLoading)),
+      filter(request => !request.isLoading),
       switchMap(() => this._http.get<Post>(this._urls.getById(id)).pipe(
         first(),
-        trackRequestResult(key, { staleTime: 30_000 }),
+        tap(post => this._postStore.update(upsertEntities(post))),
+        trackRequestResult(key, { staleTime: ServerApiConstants.DefaultCacheTimeout }),
       )),
       catchError(() => EMPTY),
-    ).subscribe(
-      next => this._postStore.update(upsertEntities(next)),
-    );
+    ).subscribe();
 
     return this._postStore.pipe(
       selectEntity(id),
       joinRequestResult(key),
-      filter(request => request.status != 'idle' && request.status != 'loading'),
-      switchMap(request => request.isSuccess ? of(request.data as Post) : throwError((request as ErrorRequestResult)?.error)),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data!) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
+  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<number[]> {
+    const sortedTagIds = tagIds?.slice().sort((a, b) => a - b);
 
-  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<Post[]> {
     let params = new HttpParams();
-
-    if (tagIds)
-      params = params.append('tag_ids', tagIds.sort((a, b) => a - b).join(','));
-
+    if (sortedTagIds)
+      params = params.append('tag_ids', sortedTagIds.join(','));
     if (offset)
       params = params.append('offset', offset);
-
     if (count)
       params = params.append('count', count);
 
-    return this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
+    const key = `post-search-${sortedTagIds?.join(',') ?? ''}-${offset ?? ''}-${count ?? ''}`;
+
+    getRequestResult([key], { initialStatus: 'idle' }).pipe(
       first(),
-      tap(posts => of(posts).pipe(
-        map(posts => posts.map(post => of(post).pipe(
-          trackRequestResult(['post', post.id], { staleTime: 30_000 }),
-          tap(p => this._postStore.update(upsertEntities(p))),
-        ).subscribe())),
-      ).subscribe()),
-      shareReplay(),
+      filter(request => !request.isLoading),
+      switchMap(() => this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
+        first(),
+        switchMap(posts => from(posts).pipe(
+          //saves each post in cache separately
+          tap(post => this._postStore.update(upsertEntities(post))),
+          //prevents later requests for saved in cache posts
+          //tap + of + subscribe avoids trackRequestResult complete effect because simple way to set RequestResult not exist
+          tap(post => of(post).pipe(trackRequestResult(['post', post.id], { staleTime: ServerApiConstants.DefaultCacheTimeout })).subscribe()),
+          map(post => post.id),
+          toArray(),
+        )),
+        //saves post ids in cache
+        tap(postIds => this._postSearchStore.update(upsertEntities({ id: key, postIds: postIds }))),
+        //saves request status
+        //cancels request if cache timeout not expired
+        trackRequestResult([key], { staleTime: ServerApiConstants.DefaultCacheTimeout }),
+      )),
+      catchError(() => EMPTY),
+    ).subscribe();
+
+    return this._postSearchStore.pipe(
+      selectEntity(key),
+      joinRequestResult([key]),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data!.postIds) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
@@ -75,9 +92,9 @@ export class PostService {
     return this._http.post<Post>(this._urls.create(), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
       tap(post => this._postStore.update(upsertEntities(post))),
+      tap(() => this.clearSearchCache()),
       switchMap(post => this._postStore.pipe(
         selectEntity(post.id),
-        filter(p => Boolean(p)),
         map(p => p as Post),
       )),
       shareReplay(),
@@ -98,7 +115,6 @@ export class PostService {
       tap(post => this._postStore.update(upsertEntities(post))),
       switchMap(() => this._postStore.pipe(
         selectEntity(id),
-        filter(post => Boolean(post)),
         map(post => post as Post),
       )),
       shareReplay(),
@@ -109,9 +125,21 @@ export class PostService {
     return this._http.delete<any>(this._urls.delete(id), { headers: { 'Authorization': '' } }).pipe(
       first(),
       tap(() => this._postStore.update(deleteEntitiesByPredicate(post => post.id == id))),
+      tap(() => this.clearSearchCache()),
       shareReplay(),
     );
   }
+
+  private clearSearchCache() {
+    this._postSearchStore.query(getEntitiesIds()).forEach(id => deleteRequestResult([id]));
+    this._postSearchStore.update(deleteAllEntities());
+    console.log('search cache cleared');
+  }
+
+  private readonly _postSearchStore = createStore(
+    { name: 'post-search-store' },
+    withEntities<{ id: string, postIds: number[] }>(),
+  );
 
   private readonly _postStore = createStore(
     { name: 'post-store' },
