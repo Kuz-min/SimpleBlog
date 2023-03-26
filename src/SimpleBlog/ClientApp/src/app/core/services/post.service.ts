@@ -113,6 +113,7 @@ export class PostService {
     return this._http.put<Post>(this._urls.update(id), formData, { headers: { 'Authorization': '' } }).pipe(
       first(),
       tap(post => this._postStore.update(upsertEntities(post))),
+      tap(() => this.clearSearchCache()),
       switchMap(() => this._postStore.pipe(
         selectEntity(id),
         map(post => post as Post),
