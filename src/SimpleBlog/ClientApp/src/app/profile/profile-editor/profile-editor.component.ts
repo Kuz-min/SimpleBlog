@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, catchError, filter, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, first, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { Profile, ProfileService } from 'simple-blog/core';
 
 @Component({
@@ -41,9 +41,10 @@ export class ProfileEditorComponent implements OnInit {
     if (!this._profileId || !this._imageFile)
       return;
 
-    this._profileService.updateImage(this._profileId, this._imageFile).subscribe(
-      next => this.isImageUpdated.next(true),
-    );
+    this._profileService.updateImageAsync(this._profileId, this._imageFile).pipe(
+      first(),
+      tap(() => this.isImageUpdated.next(true)),
+    ).subscribe();
   }
 
   imagePreview(event: any): void {

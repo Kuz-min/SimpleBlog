@@ -3,9 +3,8 @@ import { Inject, Injectable } from '@angular/core';
 import { createStore } from '@ngneat/elf';
 import { selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
-import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
 import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Profile } from 'simple-blog/core';
+import { Profile, ServerApiConstants } from 'simple-blog/core';
 
 @Injectable()
 export class ProfileService {
@@ -20,25 +19,24 @@ export class ProfileService {
 
     getRequestResult(key, { initialStatus: 'idle' }).pipe(
       first(),
-      filter(request => !(request.isLoading)),
+      filter(request => !request.isLoading),
       switchMap(() => this._http.get<Profile>(this._urls.getById(id)).pipe(
         first(),
-        trackRequestResult(key, { staleTime: 30_000 }),
+        tap(profile => this._profileStore.update(upsertEntities(profile))),
+        trackRequestResult(key, { staleTime: ServerApiConstants.DefaultCacheTimeout }),
       )),
       catchError(() => EMPTY),
-    ).subscribe(
-      next => this._profileStore.update(upsertEntities(next)),
-    );
+    ).subscribe();
 
     return this._profileStore.pipe(
       selectEntity(id),
       joinRequestResult(key),
-      filter(request => request.status != 'idle' && request.status != 'loading'),
-      switchMap(request => request.isSuccess ? of(request.data as Profile) : throwError((request as ErrorRequestResult).error)),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data!) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
-  public updateImage(id: string, data: File): Observable<Profile> {
+  public updateImageAsync(id: string, data: File): Observable<Profile> {
     const formData = new FormData();
     formData.append("file", data);
 
@@ -47,7 +45,6 @@ export class ProfileService {
       tap(profile => this._profileStore.update(upsertEntities(profile))),
       switchMap(() => this._profileStore.pipe(
         selectEntity(id),
-        filter(profile => Boolean(profile)),
         map(profile => profile as Profile),
       )),
       shareReplay(),
