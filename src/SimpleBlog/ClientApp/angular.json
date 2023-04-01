@@ -9,10 +9,11 @@
         "@schematics/angular:application": {
           "strict": true
         },
-        "@schematics/angular:service": {
-          "skipTests": true
-        },
         "@schematics/angular:component": {
+          "skipTests": true,
+          "style": "none"
+        },
+        "@schematics/angular:service": {
           "skipTests": true
         }
       },
