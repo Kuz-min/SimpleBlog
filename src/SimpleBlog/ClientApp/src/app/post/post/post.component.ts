@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, filter, map, mergeMap, Observable, of, throwError } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { AuthorizationService, Post, PostService } from 'simple-blog/core';
 
 @Component({
@@ -9,25 +9,22 @@ import { AuthorizationService, Post, PostService } from 'simple-blog/core';
   templateUrl: './post.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PostComponent implements OnInit {
+export class PostComponent {
 
-  post: (Observable<Post | null> | null) = null;
-
-  isAuthorizedToEdit: (Observable<boolean> | null) = null;
+  readonly post: Observable<Post | null>;
+  readonly isAuthorizedToEdit: Observable<boolean>;
 
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _authorizationService: AuthorizationService,
     private readonly _postService: PostService,
-  ) { }
-
-  ngOnInit(): void {
+  ) {
 
     this.post = this._route.params.pipe(
-      filter(params => params['id']),
       map(params => Number(params['id'])),
-      mergeMap(id => this._postService.getByIdAsync(id).pipe(
-        catchError(error => (error as HttpErrorResponse)?.status == 404 ? of(null) : throwError(error)),
+      filter(id => !Number.isNaN(id)),
+      switchMap(id => this._postService.getByIdAsync(id).pipe(
+        catchError(error => error instanceof HttpErrorResponse && error.status == 404 ? of(null) : throwError(() => error)),
       )),
     );
 
