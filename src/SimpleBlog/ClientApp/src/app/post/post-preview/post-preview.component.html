@@ -5,7 +5,7 @@
   </div>
 
   <div class="row g-0 border-bottom">
-    <div class="col-4 col-lg-3" *ngIf="(post | async)?.image">
+    <div class="col-4 col-lg-3 p-2" *ngIf="(post | async)?.image">
       <img class="w-100 rounded" [src]="(post | async)?.image" />
     </div>
     <div class="col p-2">
