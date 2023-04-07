@@ -1,29 +1,33 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { catchError, Observable, of, throwError } from 'rxjs';
-import { Profile, ProfileService } from 'simple-blog/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { BehaviorSubject, Observable, of, switchMap } from 'rxjs';
+import { catchNotFound, filterNotNullAndNotUndefined, Profile, ProfileService } from 'simple-blog/core';
 
 @Component({
   selector: 'profile-preview',
   templateUrl: './profile-preview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfilePreviewComponent implements OnInit {
+export class ProfilePreviewComponent {
 
-  @Input() profileId: (string | null | undefined);
+  @Input() set profileId(id: string | null | undefined) {
+    this._id.next(id);
+  }
 
-  profile: (Observable<Profile | null> | null) = null;
+  readonly profile: Observable<Profile | null>;
 
   constructor(
     private readonly _profileService: ProfileService,
-  ) { }
+  ) {
 
-  ngOnInit(): void {
-    if (this.profileId) {
-      this.profile = this._profileService.getByIdAsync(this.profileId).pipe(
-        catchError(error => (error instanceof HttpErrorResponse) && error.status == 404 ? of(null) : throwError(error)),
-      );
-    }
+    this.profile = this._id.pipe(
+      filterNotNullAndNotUndefined(),
+      switchMap(id => this._profileService.getByIdAsync(id).pipe(
+        catchNotFound(of(null)),
+      )),
+    );
+
   }
+
+  private readonly _id = new BehaviorSubject<string | null | undefined>(null);
 
 }

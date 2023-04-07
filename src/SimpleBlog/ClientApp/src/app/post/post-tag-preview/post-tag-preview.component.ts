@@ -1,29 +1,33 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { catchError, Observable, of, throwError } from 'rxjs';
-import { PostTag, PostTagService } from 'simple-blog/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { BehaviorSubject, Observable, of, switchMap } from 'rxjs';
+import { catchNotFound, filterNotNullAndNotUndefined, PostTag, PostTagService } from 'simple-blog/core';
 
 @Component({
   selector: 'post-tag-preview',
   templateUrl: './post-tag-preview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PostTagPreviewComponent implements OnInit {
+export class PostTagPreviewComponent {
 
-  @Input() tagId: (number | null | undefined);
+  @Input() set tagId(id: number | null | undefined) {
+    this._id.next(id);
+  }
 
-  tag: (Observable<PostTag | null> | null) = null;
+  readonly tag: Observable<PostTag | null>;
 
   constructor(
     private readonly _postTagService: PostTagService,
-  ) { }
+  ) {
 
-  ngOnInit(): void {
-    if (this.tagId) {
-      this.tag = this._postTagService.getByIdAsync(this.tagId).pipe(
-        catchError(error => (error instanceof HttpErrorResponse) && error.status == 404 ? of(null) : throwError(error)),
-      );
-    }
+    this.tag = this._id.pipe(
+      filterNotNullAndNotUndefined(),
+      switchMap(id => this._postTagService.getByIdAsync(id).pipe(
+        catchNotFound(of(null)),
+      )),
+    );
+
   }
+
+  private readonly _id = new BehaviorSubject<number | null | undefined>(null);
 
 }

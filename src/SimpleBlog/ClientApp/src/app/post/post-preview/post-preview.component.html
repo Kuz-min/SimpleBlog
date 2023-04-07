@@ -1,4 +1,4 @@
-<div class="d-flex flex-column border rounded">
+<div class="d-flex flex-column border rounded"  *ngIf="(post | async)">
 
   <div class="border-bottom p-2">
     <a class="h4 text-dark" [routerLink]="['/posts', (post | async)?.id]">{{(post | async)?.title}}</a>
