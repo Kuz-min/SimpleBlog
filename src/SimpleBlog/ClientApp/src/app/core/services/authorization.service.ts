@@ -11,20 +11,24 @@ export class AuthorizationService {
   ) { }
 
   public isAuthorizedToEditPost(post: Observable<Post | null>): Observable<boolean> {
-    const isOwner = combineLatest(this._authService.getIdAsync(), post).pipe(
-      map(([id, post]) => id && post && post.ownerId == id),
+
+    const isOwner = combineLatest([this._authService.getIdAsync(), post]).pipe(
+      map(([accountId, post]) => accountId && post && post.ownerId == accountId),
     );
-    const inRole = combineLatest(this._authService.getRolesAsync(), this._accountRoleService.getAllAsync()).pipe(
-      map(([accountRoles, roles]) => roles.filter(role => accountRoles?.includes(role.name))),
-      map(roles => roles.map(role => role.permissions.includes(PermissionsConstants.PostFullAccess)).includes(true)),
+
+    const isInRole = combineLatest([this._authService.getRolesAsync(), this._accountRoleService.getAllAsync()]).pipe(
+      map(([accountRoleNames, roles]) => roles.filter(role => accountRoleNames?.includes(role.name))),
+      map(accountRoles => accountRoles.map(role => role.permissions.includes(PermissionsConstants.PostFullAccess)).includes(true)),
     );
-    return combineLatest(isOwner, inRole).pipe(
-      map(([isOwner, inRole]) => isOwner || inRole),
+
+    return combineLatest([post, isOwner, isInRole]).pipe(
+      map(([post, isOwner, inRole]) => post != null && (isOwner || inRole)),
     );
+
   }
 
   public isAuthorizedToEditPostTags(): Observable<boolean> {
-    return combineLatest(this._authService.getRolesAsync(), this._accountRoleService.getAllAsync()).pipe(
+    return combineLatest([this._authService.getRolesAsync(), this._accountRoleService.getAllAsync()]).pipe(
       map(([accountRoles, roles]) => roles.filter(role => accountRoles?.includes(role.name))),
       map(roles => roles.map(role => role.permissions.includes(PermissionsConstants.PostTagFullAccess)).includes(true)),
     );
