@@ -32,9 +32,6 @@ public class AccountRoleController : BaseApiController<AccountRoleController>
     {
         var roles = await _roleService.GetAllAsync();
 
-        if (roles == null || roles.Count() == 0)
-            return NotFound();
-
         var vm = roles.Select(Map<AccountRoleViewModel>);
 
         return Ok(vm);

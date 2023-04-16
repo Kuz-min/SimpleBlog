@@ -34,9 +34,6 @@ public class PostTagController : BaseApiController<PostTagController>
     {
         var tags = await _postTagService.GetAllAsync();
 
-        if (tags == null || tags.Count() == 0)
-            return NotFound();
-
         var vm = tags.Select(Map<PostTagViewModel>);
 
         return Ok(vm);
