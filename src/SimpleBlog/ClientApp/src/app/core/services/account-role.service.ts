@@ -1,11 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { createStore } from '@ngneat/elf';
 import { selectAllEntities, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
-import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, Observable, of, switchMap, throwError } from 'rxjs';
-import { AccountRole } from 'simple-blog/core';
+import { catchError, EMPTY, filter, first, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { AccountRole, ServerApiConstants } from 'simple-blog/core';
 
 @Injectable()
 export class AccountRoleService {
@@ -23,25 +22,23 @@ export class AccountRoleService {
       filter(request => !(request.isLoading)),
       switchMap(() => this._http.get<AccountRole[]>(this._urls.getAll()).pipe(
         first(),
-        catchError(error => error instanceof HttpErrorResponse && error.status == 404 ? of([]) : throwError(error)),
-        trackRequestResult(key, { staleTime: 30_000 }),
+        tap(roles => this._accountRoleStore.update(upsertEntities(roles))),
+        trackRequestResult(key, { staleTime: ServerApiConstants.DefaultCacheTimeout }),
       )),
       catchError(() => EMPTY),
-    ).subscribe(
-      next => this._accountRoleStore.update(upsertEntities(next)),
-    );
+    ).subscribe();
 
     return this._accountRoleStore.pipe(
       selectAllEntities(),
       joinRequestResult(key),
-      filter(request => request.status != 'idle' && request.status != 'loading'),
-      switchMap(request => request.isSuccess ? of(request.data as AccountRole[]) : throwError((request as ErrorRequestResult).error)),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
   private readonly _accountRoleStore = createStore(
     { name: 'account-role-store' },
-    withEntities<AccountRole, 'name'>(),
+    withEntities<AccountRole, 'name'>({ idKey: 'name' }),
   );
 
   private readonly _urls = {
