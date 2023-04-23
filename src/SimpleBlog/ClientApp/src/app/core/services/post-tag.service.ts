@@ -1,11 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { createStore } from '@ngneat/elf';
 import { deleteEntitiesByPredicate, selectAllEntities, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
-import { ErrorRequestResult } from '@ngneat/elf-requests/src/lib/requests-result';
-import { catchError, EMPTY, filter, first, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { PostTag } from 'simple-blog/core';
+import { catchError, EMPTY, filter, first, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { filterNotNullAndNotUndefined, PostTag, ServerApiConstants } from 'simple-blog/core';
 
 @Injectable()
 export class PostTagService {
@@ -18,13 +17,16 @@ export class PostTagService {
   public getByIdAsync(id: number): Observable<PostTag> {
     const key = ['post-tag-all'];
 
-    this.getAllAsync().subscribe();
+    this.getAllAsync().pipe(
+      first(),
+      catchError(() => EMPTY),
+    ).subscribe();
 
     return this._postTagStore.pipe(
       selectEntity(id),
       joinRequestResult(key),
-      filter(request => request.status != 'idle' && request.status != 'loading'),
-      switchMap(request => request.isSuccess ? of(request.data as PostTag) : throwError((request as ErrorRequestResult).error)),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data!) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
@@ -36,30 +38,27 @@ export class PostTagService {
       filter(request => !(request.isLoading)),
       switchMap(() => this._http.get<PostTag[]>(this._urls.getAll()).pipe(
         first(),
-        catchError(error => error instanceof HttpErrorResponse && error.status == 404 ? of([]) : throwError(error)),
-        trackRequestResult(key, { staleTime: 30_000 }),
+        tap(tags => this._postTagStore.update(upsertEntities(tags))),
+        trackRequestResult(key, { staleTime: ServerApiConstants.DefaultCacheTimeout }),
       )),
       catchError(() => EMPTY),
-    ).subscribe(
-      next => this._postTagStore.update(upsertEntities(next)),
-    );
+    ).subscribe();
 
     return this._postTagStore.pipe(
       selectAllEntities(),
       joinRequestResult(key),
-      filter(request => request.status != 'idle' && request.status != 'loading'),
-      switchMap(request => request.isSuccess ? of(request.data as PostTag[]) : throwError((request as ErrorRequestResult).error)),
+      filter(request => request.isSuccess || request.isError),
+      switchMap(request => request.isSuccess ? of(request.data) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
   public createAsync(data: { title: string }): Observable<PostTag> {
     return this._http.post<PostTag>(this._urls.create(), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      tap(postTag => this._postTagStore.update(upsertEntities(postTag))),
-      switchMap(postTag => this._postTagStore.pipe(
-        selectEntity(postTag.id),
-        filter(p => Boolean(p)),
-        map(p => p as PostTag),
+      tap(tag => this._postTagStore.update(upsertEntities(tag))),
+      switchMap(tag => this._postTagStore.pipe(
+        selectEntity(tag.id),
+        filterNotNullAndNotUndefined(),
       )),
       shareReplay(),
     );
@@ -68,11 +67,10 @@ export class PostTagService {
   public updateAsync(id: number, data: { title: string }): Observable<PostTag> {
     return this._http.put<PostTag>(this._urls.update(id), data, { headers: { 'Authorization': '' } }).pipe(
       first(),
-      tap(postTag => this._postTagStore.update(upsertEntities(postTag))),
+      tap(tag => this._postTagStore.update(upsertEntities(tag))),
       switchMap(() => this._postTagStore.pipe(
         selectEntity(id),
-        filter(postTag => Boolean(postTag)),
-        map(postTag => postTag as PostTag),
+        filterNotNullAndNotUndefined(),
       )),
       shareReplay(),
     );
@@ -81,7 +79,7 @@ export class PostTagService {
   public deleteAsync(id: number): Observable<any> {
     return this._http.delete<any>(this._urls.delete(id), { headers: { 'Authorization': '' } }).pipe(
       first(),
-      tap(() => this._postTagStore.update(deleteEntitiesByPredicate(postTag => postTag.id == id))),
+      tap(() => this._postTagStore.update(deleteEntitiesByPredicate(tag => tag.id == id))),
       shareReplay(),
     );
   }
@@ -92,7 +90,6 @@ export class PostTagService {
   );
 
   private readonly _urls = {
-    //getById: (id: number) => `${this._baseUrl}api/post-tags/${id}`,
     getAll: () => `${this._baseUrl}api/post-tags`,
     create: () => `${this._baseUrl}api/post-tags`,
     update: (id: number) => `${this._baseUrl}api/post-tags/${id}`,
