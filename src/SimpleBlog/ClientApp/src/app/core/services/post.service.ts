@@ -4,7 +4,7 @@ import { createStore } from '@ngneat/elf';
 import { deleteAllEntities, deleteEntitiesByPredicate, getEntitiesIds, selectEntity, upsertEntities, withEntities } from '@ngneat/elf-entities';
 import { deleteRequestResult, getRequestResult, joinRequestResult, trackRequestResult } from '@ngneat/elf-requests';
 import { catchError, EMPTY, filter, first, from, map, Observable, of, shareReplay, switchMap, tap, throwError, toArray } from 'rxjs';
-import { Post, PostFormModel, ServerApiConstants } from 'simple-blog/core';
+import { List, Post, PostFormModel, ServerApiConstants } from 'simple-blog/core';
 
 @Injectable()
 export class PostService {
@@ -36,7 +36,7 @@ export class PostService {
     );
   }
 
-  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<number[]> {
+  public searchAsync(tagIds?: number[], offset?: number, count?: number): Observable<List<number>> {
     const sortedTagIds = tagIds?.slice().sort((a, b) => a - b);
 
     let params = new HttpParams();
@@ -52,9 +52,9 @@ export class PostService {
     getRequestResult([key], { initialStatus: 'idle' }).pipe(
       first(),
       filter(request => !request.isLoading),
-      switchMap(() => this._http.get<Post[]>(this._urls.search(), { params: params }).pipe(
+      switchMap(() => this._http.get<List<Post>>(this._urls.search(), { params: params }).pipe(
         first(),
-        switchMap(posts => from(posts).pipe(
+        switchMap(list => from(list.items).pipe(
           //saves each post in cache separately
           tap(post => this._postStore.update(upsertEntities(post))),
           //prevents later requests for saved in cache posts
@@ -62,9 +62,10 @@ export class PostService {
           tap(post => of(post).pipe(trackRequestResult(['post', post.id], { staleTime: ServerApiConstants.DefaultCacheTimeout })).subscribe()),
           map(post => post.id),
           toArray(),
+          map(ids => ({ offset: list.offset, length: list.length, items: ids }) as List<number>),
         )),
         //saves post ids in cache
-        tap(postIds => this._postSearchStore.update(upsertEntities({ id: key, postIds: postIds }))),
+        tap(list => this._postSearchStore.update(upsertEntities({ id: key, list: list }))),
         //saves request status
         //cancels request if cache timeout not expired
         trackRequestResult([key], { staleTime: ServerApiConstants.DefaultCacheTimeout }),
@@ -76,7 +77,7 @@ export class PostService {
       selectEntity(key),
       joinRequestResult([key]),
       filter(request => request.isSuccess || request.isError),
-      switchMap(request => request.isSuccess ? of(request.data!.postIds) : request.isError ? throwError(() => request.error) : EMPTY),
+      switchMap(request => request.isSuccess ? of(request.data!.list) : request.isError ? throwError(() => request.error) : EMPTY),
     );
   }
 
@@ -139,7 +140,7 @@ export class PostService {
 
   private readonly _postSearchStore = createStore(
     { name: 'post-search-store' },
-    withEntities<{ id: string, postIds: number[] }>(),
+    withEntities<{ id: string, list: List<number> }>(),
   );
 
   private readonly _postStore = createStore(

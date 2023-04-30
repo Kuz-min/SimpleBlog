@@ -61,7 +61,12 @@ public class PostController : BaseApiController<PostController>
         if (posts == null || posts.Count() == 0)
             return NotFound();
 
-        var vm = posts.Select(Map<PostViewModel>);
+        var vm = new ListViewModel<PostViewModel>
+        {
+            offset = request.Offset,
+            length = await _postService.GetCountAsync(request.TagIds),
+            items = posts.Select(Map<PostViewModel>).ToArray(),
+        };
 
         return Ok(vm);
     }

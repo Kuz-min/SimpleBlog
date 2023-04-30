@@ -46,6 +46,16 @@ public class PostService : IPostService
         return await request.ToListAsync();
     }
 
+    public async Task<int> GetCountAsync(IEnumerable<int>? tagIds = null)
+    {
+        var request = _database.Posts.AsNoTracking();
+
+        if (tagIds != null && tagIds.Count() > 0)
+            request = request.Where(post => post.Tags.Count(tag => tagIds.Contains(tag.PostTagId)) == tagIds.Count());
+
+        return await request.CountAsync();
+    }
+
     public async Task<Post> InsertAsync(Post post)
     {
         if (post == null)
